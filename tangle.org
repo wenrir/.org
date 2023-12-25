@@ -1,0 +1,83 @@
+#+title: Tangle org files
+
+* Reference
+Structure taken from KUHY (https://github.com/kuhy/.dotfiles/blob/master/dot-tangle)
+* Setup
+** Bash script from KUHY
+#+begin_quote
+Following function Exports Org file to another Org file.
+Exporting is needed because =#+INCLUDE= isn't executed during tangling.
+#+end_quote
+
+#+begin_src bash :shebang #!/bin/env bash
+emacs_export_to_org() {
+    emacs -Q --batch --eval "
+        (progn
+          (setq make-backup-files nil)
+          (dolist (file command-line-args-left)
+            (with-current-buffer
+              (find-file-noselect file)
+              (org-org-export-to-org)
+            )
+          )
+        )" "$1"
+}
+#+end_src
+
+#+begin_quote
+Following function tangles all specified Org files.
+#+end_quote
+
+#+begin_src bash :shebang #!/bin/env bash
+emacs_tangle() {
+    emacs -Q --batch --eval "
+        (progn
+          (setq make-backup-files nil)
+          (dolist (file command-line-args-left)
+            (with-current-buffer
+              (find-file-noselect file)
+              (org-babel-tangle)
+            )
+          )
+        )" "$1"
+}
+#+end_src
+
+#+begin_quote
+Export all Org files matching passed arguments except the files in the root directory:
+#+end_quote
+
+#+begin_src bash :shebang #!/bin/env bash :var DOTFILES_DIR="~/.org/git"
+FILES = $(find "$DOTFILES_DIR/$*" -path "$DOTFILES_DIR/[!.]*/*.org")
+emacs_export_to_org "$FILES"
+#+end_src
+
+#+RESULTS:
+: $(find $DOTFILES_DIR/$* -path $DOTFILES_DIR/[!.]*/*.org)
+
+#+begin_quote
+Decrypt exported files.
+It is required to drop =sudo= privileges; otherwise files are not decrypted correctly.
+#+end_quote
+
+#+begin_quote
+Tangle exported files.
+#+end_quote
+#+begin_src bash :shebang #!/bin/env bash
+emacs_tangle "$EXPORTED_FILES"
+#+end_src
+
+#+begin_quote
+Delete exported files.
+#+end_quote
+#+begin_src bash :shebang #!/bin/env bash
+rm "$EXPORTED_FILES"
+exit 0
+#+end_src
+
+
+** ros script
+#+name: build tangle
+#+begin_src sh
+ros build ~/.org/tangle.org
+#+end_src

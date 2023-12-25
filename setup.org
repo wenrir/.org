@@ -1,0 +1,151 @@
+#+TITLE: Arch setup
+#+PROPERTY: header-args :comments link :tangle-mode (identity #o444)
+#+include: ./config.org
+#+options: prop:t
+
+* Tools
+** Standard tools
+#+name: standard-tools-install
+#+begin_src sh :dir /sudo:: :results silent
+   yes | pacman -S --needed git base-devel vim
+#+end_src
+** Man pages
+#+begin_src sh :dir /sudo:: :results silent :noweb yes
+  yes | pacman -S --needed man-db
+  yes | pacman -S --needed man-pages-<<MAN-LANG>>
+#+end_src
+*** Using emacs as PAGER
+TODO
+** Yay
+#+begin_src sh :results silent
+   git clone https://aur.archlinux.org/yay-bin.git
+   cd yay-bin/
+   makepkg -si
+   yay -Y --gendb
+   yay -Syu --devel
+   yay -Y --devel --save
+#+end_src
+
+* Tracking dotfiles directly in git
+** Why bare?
+      To keep it minimal without external tools, keeping setup clean with dotfiles where they are expected to be located, no symlinks or strange re-routing with additional tools.
+      Basically it's the content of .git folder in a "non-bare" repo (which is used for working).
+      With this technique we will store a bare git repo in a "side" dir, like e.g. my choice .dotfiles.
+      We use this in combination with alias so that commands are executed against the bare repository and not the common .git local dir. (To avoid inteferring with any other git working repos.)
+      For example what you push to on gerrit, bitbhucket, github etc will be bare repors while what you WORK on locally are non-bare.
+      We use bare here because the working tree is already in $HOME dir. No need for an extra copy in the repository. 
+** Setup
+mkdir ~/.dotfiles
+
+#+name: Init bare repo.
+#+begin_src sh :results silent
+git init --bare ~/.dotfiles
+#+end_src
+
+Make $HOME work tree and git dir $HOME/.dotfiles for the bare .dotfiles repo.
+
+#+name: Add dot alias
+#+begin_src sh :results silent
+alias dot='/usr/bin/git --git-dir="$HOME/.dotfiles" --work-tree="$HOME"'
+#+end_src
+
+And ofcourse add alias to whatever shell we're using, e.g. bash
+#+begin_src sh :results silent
+echo "alias dot='/usr/bin/git --git-dir=$HOME/.dotfiles --work-tree=$HOME'" >> $HOME/.bashrc
+#+end_src
+
+Don't show untracked files in the dotfiles repo, as we're working in $HOME.
+#+name: showUntrackedFiles
+#+begin_src sh :results silent
+dot config status.showUntrackedFiles no
+#+end_src
+*** Why not show untracked files?
+Just track files in work-tree ($HOME) that's been pushed to the bare repository.
+*** For bash completion
+#+begin_src sh :dir /sudo:: :results silent
+yes | pacman -S bash-completion
+complete -F _complete_alias dot
+#+end_src
+* SWAY
+** Install foot 
+#+name: Install foot
+#+begin_src sh :dir /sudo:: :results silent
+yes | pacman -S foot
+#+end_src
+** SwayFx
+#+begin_src sh :dir /sudo:: :results silent
+  git clone https://aur.archlinux.org/swayfx.git
+  cd swayfx
+  makepg -si
+  yes | pacman -S seatd waybar
+  cd ..
+  rm -rf swayfx
+#+end_src
+* Emacs
+#+name: install wayland emacs
+#+begin_src sh :dir /sudo:: :results silent
+  yes | pacman -S --needed emacs-wayland
+#+end_src
+** Doom
+#+begin_src sh :results silent
+git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+export PATH="$HOME/.config/emacs/bin:$PATH"
+echo 'export PATH=$HOME/.config/emacs/bin:$PATH' >> ~/.bashrc
+~/.config/emacs/bin/doom install
+#+end_src
+** Node
+Node is required for package-install.
+#+begin_src sh :dir /sudo:: :results silent
+yes | pacman -S nodejs-lts-iron
+#+end_src
+** Python
+#+begin_src sh :dir /sudo:: :results silent
+yes | pacman -S python python-pip python-pytest python-nose python-black python-isort
+#+end_src
+*** Pyenv
+#+begin_src sh :results silent
+curl https://pyenv.run | bash
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+#+end_src
+** Vterm
+#+begin_src sh :dir /sudo:: :results silent
+yes | pacman -S --needed libvterm make cmake
+#+end_src
+** Icons
+#+begin_src emacs-lisp
+
+#+end_src
+* ROSWELL
+#+begin_src sh :dir /sudo:: :results silent
+  yes | pacman -Syu roswell
+  ros
+#+end_src
+*** Sly
+#+begin_src emacs-lisp
+(package-install 'sly)
+#+end_src
+
+* Version/backup management
+** Anex
+sudo pacman -S git-annex
+mkdir annex
+cd annex/
+git init
+git annex init
+** Restic
+sudo pacman -S restic
+sudo fdisk -l
+sudo mkdir /media
+sudo mkdir /media/samsung_portable_ssd
+sudo mount /dev/sda1 /media/samsung_portable_ssd
+mkdir /media/samsung_portable_ssd/arch-backup
+sudo mkdir /media/samsung_portable_ssd/arch-backup
+restic init --repo /media/samsung_portable_ssd/arch-backup/
+sudo restic init --repo /media/samsung_portable_ssd/arch-backup/
+
+* GPG
+   sudo pacman -S gnupg
+
+

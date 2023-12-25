@@ -1,0 +1,45 @@
+# Created 2023-12-25 Mon 18:26
+#+options: prop:t
+#+options: prop:t
+#+title: Gitconfig Config
+#+author: wilind
+#+property: header-args+ :comments yes
+#+property: header-args+ :mkdirp yes
+#+property: header-args+ :tangle ~/.gitconfig
+#+property: header-args+ :noweb tangle
+* Default variables
+:PROPERTIES:
+:header-args: :tangle no
+:END:
+** Email
+#+name: email
+#+begin_src conf
+  yim.dev@proton.me
+#+end_src
+** Username
+#+name: username
+#+begin_src conf
+  wim
+#+end_src
+** Man Lang
+#+name: MAN-LANG
+#+begin_src conf
+  sv
+#+end_src
+** Default git branch
+#+name: default-branch
+#+begin_src conf
+  main
+#+end_src
+
+* Git
+** Config
+#+begin_src conf
+  [init]
+     defaultBranch = <<default-branch>>
+  [user]
+     email = <<email>>
+     name = <<username>>
+#+end_src
+*** TODO
+Setup git config to use emacs. (editor diff etc)
