@@ -197,23 +197,34 @@ yes | pacman -S --needed libvterm make cmake
 
 * Version/backup management
 ** Anex
-sudo pacman -S git-annex
+#+begin_src sh :dir /sudo:: :results silent
+pacman -S git-annex
 mkdir annex
 cd annex/
 git init
 git annex init
+#+end_src
 ** Restic
-sudo pacman -S restic
-sudo fdisk -l
-sudo mkdir /media
-sudo mkdir /media/samsung_portable_ssd
-sudo mount /dev/sda1 /media/samsung_portable_ssd
+#+begin_src sh :dir /sudo:: :results silent
+pacman -S restic
+fdisk -l
+mkdir /media
+mkdir /media/samsung_portable_ssd
+mount /dev/sda1 /media/samsung_portable_ssd
 mkdir /media/samsung_portable_ssd/arch-backup
-sudo mkdir /media/samsung_portable_ssd/arch-backup
+mkdir /media/samsung_portable_ssd/arch-backup
 restic init --repo /media/samsung_portable_ssd/arch-backup/
-sudo restic init --repo /media/samsung_portable_ssd/arch-backup/
-
+restic init --repo /media/samsung_portable_ssd/arch-backup/
+#+end_src
 * GPG
-   sudo pacman -S gnupg
+** Install
+#+name: install gpg
+#+begin_src sh :dir /sudo:: :results silent
+   pacman -S gnupg
+#+end_src
 
-
+** Generate key
+#+name: generate gpg key
+#+begin_src sh :results silent
+   gpg --gen-key
+#+end_src

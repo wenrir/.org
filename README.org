@@ -2,6 +2,17 @@
 
 * Motivation
 TODO
+* Structure
+Each subdirectory relates to one configuration file on the host system.
+Configuration files in each subdirectory are tangled with the taget configuration file defined in the header.
+
+*** [CONFIG-DIRECTORY]/configname.org
+Main configuration, using tangle and noweb to target specific configuration files on the system.
+*** [CONFIG-DIRECTORY]/config.org
+Contains configuration blocks inheirited to `configname.org`.
+*** [CONFIG-DIRECTORY]/secrets.org
+Contains encrypted configuration blocks inheirited to `configname.org`. [not stored in git]
+Template available under `util/secrets.template.org`
 * Makefile
 ** Prerequisites
 - [[https://github.com/roswell/roswell][Roswell]]

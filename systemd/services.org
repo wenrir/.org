@@ -1,0 +1,28 @@
+#+title: Services
+#+options: prop:t
+
+* EMACS
+#+name: emacs service
+#+begin_src conf :comments no :mkdirp yes :tangle ~/.config/systemd/user/emacs.service
+[Unit]
+Description=Emacs server daemon
+Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
+
+[Service]
+Type=forking
+ExecStart=bash -c 'emacs --daemon && emacsclient -c --eval "(delete-frame)"'
+ExecStop=/usr/bin/emacsclient --no-wait --eval "(progn (setq kill-emacs-hook nil) (kill emacs))"
+Environment=COLORTERM=truecolor
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+#+end_src
+
+#+name: start service
+#+begin_src sh
+systemctl --user enable emacs.service
+systemctl --user start emacs.service
+#+end_src
+
+#+RESULTS: start service

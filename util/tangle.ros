@@ -21,7 +21,7 @@ exec ros -Q -- $0 "$@"
           (setq make-backup-files nil)
             (with-current-buffer
               (find-file-noselect \"~a\")
-              ( ~(~a~))))'" *emacs-cmd* file ,cmd) :output :string)))))
+              (~(~a~))))'" *emacs-cmd* file ,cmd) :output :string)))))
 
 (e-org-cmd tangle-export-to-org 'org-org-export-to-org)
 (e-org-cmd tangle-babel-tangle 'org-babel-tangle)
