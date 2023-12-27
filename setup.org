@@ -26,6 +26,74 @@ TODO
    yay -Y --devel --save
 #+end_src
 
+* Keybindings
+Imagine using CTRL []
+** Evremap
+#+name: install evremap
+#+begin_src sh :results silent
+git clone https://aur.archlinux.org/evremap-git.git
+cd evremap-git
+makepkg -Acs --needed
+#+end_src
+*** Daemon
+#+begin_src conf :dir /sudo:: :tangle /usr/lib/systemd/system/evremap.service :comments yes
+[Service]
+WorkingDirectory=/
+ExecStart=bash -c "/usr/bin/evremap remap /etc/evremap.toml -d 0"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+#+end_src
+
+** Config
+#+begin_src toml :tangle /etc/evremap.toml :comments yes :dir /sudo::
+device_name = "AT Translated Set 2 keyboard"
+# Swap MODE and FN
+[[remap]]
+input = ["KEY_FN"]
+output = ["KEY_MODE"]
+
+[[remap]]
+input = ["KEY_RIGHTCTRL"]
+output = ["KEY_FN"]
+
+[[remap]]
+input = ["KEY_CAPSLOCK"]
+output = ["KEY_LEFTCTRL"]
+
+# vim-like navigation.
+#TODO Why does not KEY_WAKEUP want to be remapped ... ()
+
+#[[remap]]
+#input = ["KEY_TAB", "KEY_H"]
+#output = ["KEY_LEFT"]
+#
+#[[remap]]
+#input = ["KEY_TAB", "KEY_J"]
+#output = ["KEY_DOWN"]
+#
+#[[remap]]
+#input = ["KEY_TAB", "KEY_K"]
+#output = ["KEY_UP"]
+
+[[remap]]
+input = ["KEY_TAB", "KEY_L"]
+output = ["KEY_RIGHT"]
+#+end_src
+
+** Start service
+#+name: reload / enable service
+#+begin_src sh :dir /sudo:: :results silent
+systemctl daemon-reload
+systemctl enable evremap.service
+#+end_src
+
+#+name: start service
+#+begin_src sh :dir /sudo:: :results silent
+systemctl start evremap.service
+#+end_src
+
 * Tracking dotfiles directly in git
 ** Why bare?
       To keep it minimal without external tools, keeping setup clean with dotfiles where they are expected to be located, no symlinks or strange re-routing with additional tools.
