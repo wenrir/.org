@@ -1,0 +1,15 @@
+#+title: Readme
+
+* Motivation
+TODO
+* Makefile
+** Prerequisites
+- [[https://github.com/roswell/roswell][Roswell]]
+** Build tangle script
+#+begin_src shell
+make build
+#+end_src
+** Tangle .org files with dotfiles
+#+begin_src shell
+make tangle
+#+end_src

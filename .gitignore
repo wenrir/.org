@@ -11,3 +11,4 @@
 *.~undo-tree
 
 config.org
+.tangle
