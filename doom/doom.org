@@ -214,7 +214,7 @@ Jira in org mode, mainly for work.
 *** Atomic chrome
 When emacs everywhere does not work ...
 #+begin_src emacs-lisp
-(package! atomic-chrome)
+;;(package! atomic-chrome)
 #+end_src
 *** Writeroom
 Focus ...
@@ -436,8 +436,8 @@ Focus ...
 **** Personal
 #+name: Contact info
 #+begin_src emacs-lisp
-(setq user-full-name <<username>>
-      user-mail-address <<email>>)
+(setq user-full-name "<<username>>"
+      user-mail-address "<<email>>")
 #+end_src
 
 #+name: Auth
@@ -1257,17 +1257,17 @@ sudo make install
 Requires https://addons.mozilla.org/en-US/firefox/addon/ghosttext/
 #+name: Browser in emacs
 #+begin_src emacs-lisp
-(use-package! atmoic-chrome
-    :init
-    (atomic-chrome-start-server)
-    :config
-    (setq atomic-chrome-default-major-mode 'org-mode
-          atomic-chrome-buffer-open-style 'frame
-          atomic-chrome-url-major-mode-alist `(("github\\.com" . gfm-mode)
-                                               ("notion\\.so" . markdown-mode)
-                                               ("\\.slack\\.com" . gfm-mode)
-                                               ("\\.atlassian\\.net" . gfm-mode))))
-
+;;(use-package! atmoic-chrome
+;;    :init
+;;    (atomic-chrome-start-server)
+;;    :config
+;;    (setq atomic-chrome-default-major-mode 'org-mode
+;;          atomic-chrome-buffer-open-style 'frame
+;;          atomic-chrome-url-major-mode-alist `(("github\\.com" . gfm-mode)
+;;                                               ("notion\\.so" . markdown-mode)
+;;                                               ("\\.slack\\.com" . gfm-mode)
+;;                                               ("\\.atlassian\\.net" . gfm-mode))))
+;;
 #+end_src
 **** Usage
     -- Start Emacs.
