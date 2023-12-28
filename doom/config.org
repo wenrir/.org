@@ -1,0 +1,15 @@
+#+title: Config
+#+options: prop:t
+
+* CONFIGS
+:PROPERTIES:
+:header-args: :tangle no
+:END:
+#+name: email
+#+begin_src conf
+yim.dev@proton.me
+#+end_src
+#+name: username
+#+begin_src conf
+wim
+#+end_src

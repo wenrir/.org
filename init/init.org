@@ -1,6 +1,11 @@
 #+TITLE: Arch setup
 #+PROPERTY: header-args :comments link :tangle-mode (identity #o444)
 #+options: prop:t
+
+#+begin_quote
+Allow yourself to be the judge of you and no one else, and then you will have the approval of the whole world.
+#+end_quote
+
 * Tools
 ** ROSWELL
 #+begin_src sh :dir /sudo:: :results silent

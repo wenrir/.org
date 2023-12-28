@@ -5,7 +5,10 @@
 #+include: ./config.org
 
 * Doom
-** init
+#+begin_quote
+Recognize untruth as a condition to life.
+#+end_quote
+** Init
 :PROPERTIES:
 :header-args: :comments no :mkdirp yes :tangle ~/.config/doom/init.el :noweb tangle
 :END:
@@ -102,13 +105,13 @@
        everywhere
 
        :config
-       literate
+       ;;literate
        (default +bindings +smartparens))
 #+end_src
 
-** package
+** Package
 :PROPERTIES:
-:header-args: :comments no :mkdirp yes :tangle ~/.config/doom/package.el :noweb tangle
+:header-args: :comments no :mkdirp yes :tangle ~/.config/doom/packages.el :noweb tangle
 :END:
 
 #+name: header
@@ -218,3 +221,1077 @@ Focus ...
 #+begin_src emacs-lisp
 (package! writeroom-mode)
 #+end_src
+
+** Config
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/doom/config.el :noweb tangle
+:END:
+*** Header
+#+begin_src emacs-lisp
+;;; -*- lexical-binding: t; -*-
+#+end_src
+*** Visual
+**** Remove compile buffer quickly
+#+begin_src emacs-lisp
+(defun bury-compile-buffer-if-successful (buffer string)
+  "Bury a compilation buffer if succeeded without warnings "
+  (when (and (eq major-mode 'comint-mode)
+             (string-match "finished" string)
+             (not
+              (with-current-buffer buffer
+                (search-forward "warning" nil t))))
+    (run-with-timer 1 nil
+                    (lambda (buf)
+                      (let ((window (get-buffer-window buf)))
+                        (when (and (window-live-p window)
+                                   (eq buf (window-buffer window)))
+                          (delete-window window))))
+                    buffer)))
+
+(add-hook 'compilation-finish-functions #'bury-compile-buffer-if-successful)
+#+end_src
+
+**** Marginalia
+#+begin_src emacs-lisp
+(after! marginalia
+  (setq marginalia-censor-variables nil)
+
+  (defadvice! +marginalia--anotate-local-file-colorful (cand)
+    "Just a more colourful version of `marginalia--anotate-local-file'."
+    :override #'marginalia--annotate-local-file
+    (when-let (attrs (file-attributes (substitute-in-file-name
+                                       (marginalia--full-candidate cand))
+                                      'integer))
+      (marginalia--fields
+       ((marginalia--file-owner attrs)
+        :width 12 :face 'marginalia-file-owner)
+       ((marginalia--file-modes attrs))
+       ((+marginalia-file-size-colorful (file-attribute-size attrs))
+        :width 7)
+       ((+marginalia--time-colorful (file-attribute-modification-time attrs))
+        :width 12))))
+
+  (defun +marginalia--time-colorful (time)
+    (let* ((seconds (float-time (time-subtract (current-time) time)))
+           (color (doom-blend
+                   (face-attribute 'marginalia-date :foreground nil t)
+                   (face-attribute 'marginalia-documentation :foreground nil t)
+                   (/ 1.0 (log (+ 3 (/ (+ 1 seconds) 345600.0)))))))
+      ;; 1 - log(3 + 1/(days + 1)) % grey
+      (propertize (marginalia--time time) 'face (list :foreground color))))
+
+  (defun +marginalia-file-size-colorful (size)
+    (let* ((size-index (/ (log10 (+ 1 size)) 7.0))
+           (color (if (< size-index 10000000) ; 10m
+                      (doom-blend 'orange 'green size-index)
+                    (doom-blend 'red 'orange (- size-index 1)))))
+      (propertize (file-size-human-readable size) 'face (list :foreground color)))))
+
+#+end_src
+
+**** Info colors
+#+begin_src emacs-lisp
+(use-package! info-colors
+  :after info
+  :commands (info-colors-fontify-node)
+  :hook (Info-selection . info-colors-fontify-node))
+#+end_src
+
+**** Fonts
+#+begin_src emacs-lisp
+;;(setq  doom-font (font-spec :family "Hasklug Nerd Font" :size 20)
+;;       doom-variable-pitch-font (font-spec :family "Hasklug Nerd Font" :size 20)
+;;       doom-unicode-font (font-spec :family "Hasklug Nerd Font" :size 20))
+#+end_src
+**** Theme
+#+name: Theme
+#+begin_src emacs-lisp
+;;(setq doom-theme 'doom-gruvbox)
+;;(delq! t custom-theme-load-path)
+;; TODO
+;;(custom-theme-set-faces! 'doom-gruvbox
+;;  `(tree-sitter-hl-face:constructor :foreground ,(doom-color 'blue))
+;;  `(tree-sitter-hl-face:number :foreground ,(doom-color 'magenta))
+;;  `(tree-sitter-hl-face:attribute :foreground ,(doom-color 'magenta) :weight bold)
+;;  `(tree-sitter-hl-face:variable :foreground ,(doom-color 'base7) :weight bold)
+;;  `(tree-sitter-hl-face:variable.builtin :foreground ,(doom-color 'base7) :weight bold)
+;;  `(tree-sitter-hl-face:constant.builtin :foreground ,(doom-color 'magenta) :weight bold)
+;;  `(tree-sitter-hl-face:constant :foreground ,(doom-color 'teal) :weight bold)
+;;  `(tree-sitter-hl-face:function.macro :foreground ,(doom-color 'teal))
+;;  `(tree-sitter-hl-face:label :foreground ,(doom-color 'magenta))
+;;  `(tree-sitter-hl-face:operator :foreground ,(doom-color 'blue))
+;;  `(tree-sitter-hl-face:variable.parameter :foreground ,(doom-color 'dark-blue))
+;;  `(tree-sitter-hl-face:punctuation.delimiter :foreground ,(doom-color 'cyan))
+;;  `(tree-sitter-hl-face:punctuation.bracket :foreground ,(doom-color 'cyan))
+;;  `(tree-sitter-hl-face:punctuation.special :foreground ,(doom-color 'cyan))
+;;  `(tree-sitter-hl-face:type :foreground ,(doom-color 'blue))
+;;  `(tree-sitter-hl-face:type.builtin :foreground ,(doom-color 'blue))
+;;  `(tree-sitter-hl-face:tag :foreground ,(doom-color 'base7))
+;;  `(tree-sitter-hl-face:string :foreground ,(doom-color 'green))
+;;  `(tree-sitter-hl-face:comment :foreground ,(doom-color 'base6))
+;;  `(tree-sitter-hl-face:function :foreground ,(doom-color 'cyan))
+;;  `(tree-sitter-hl-face:method :foreground ,(doom-color 'teal))
+;;  `(tree-sitter-hl-face:function.builtin :foreground ,(doom-color 'cyan))
+;;  `(tree-sitter-hl-face:property :foreground ,(doom-color 'dark-blue))
+;;  `(tree-sitter-hl-face:keyword :foreground ,(doom-color 'blue))
+;;  `(corfu-default :font "Iosevka Nerd Font Mono" :background ,(doom-color 'bg-alt) :foreground ,(doom-color 'fg))
+;;  `(adoc-title-0-face :foreground ,(doom-color 'blue) :height 1.2)
+;;  `(adoc-title-1-face :foreground ,(doom-color 'magenta) :height 1.1)
+;;  `(adoc-title-2-face :foreground ,(doom-color 'violet) :height 1.05)
+;;  `(adoc-title-3-face :foreground ,(doom-lighten (doom-color 'blue) 0.25) :height 1.0)
+;;  `(adoc-title-4-face :foreground ,(doom-lighten (doom-color 'magenta) 0.25) :height 1.1)
+;;  `(adoc-verbatim-face :background nil)
+;;  `(adoc-list-face :background nil)
+;;  `(adoc-internal-reference-face :foreground ,(face-attribute 'font-lock-comment-face :foreground)))
+#+end_src
+
+**** Modeline
+#+begin_src emacs-lisp
+(after! doom-modeline
+  :custom
+  (setq all-the-icons-scale-factor 1.1
+        auto-revert-check-vc-info t
+        doom-modeline-major-mode-icon (display-graphic-p)
+        doom-modeline-major-mode-color-icon (display-graphic-p)
+        doom-modeline-buffer-file-name-style 'relative-to-project
+        doom-modeline-github t
+        doom-modeline-height 15
+        doom-modeline-bar-width 4
+        doom-modeline-hud nil
+        doom-modeline-github-interval 60
+        doom-modeline-env-enable-python t
+        doom-modeline-vcs-max-length 60)
+  (remove-hook 'doom-modeline-mode-hook #'size-indication-mode)
+  (doom-modeline-def-modeline 'main
+    '(bar modals workspace-name window-number persp-name buffer-position selection-info buffer-info matches remote-host debug vcs matches)
+    '(github mu4e grip gnus checker misc-info repl lsp " ")))
+
+#+end_src
+
+#+RESULTS:
+: doom-modeline-format--main
+**** Modus theme
+#+name: Theme
+#+begin_src emacs-lisp
+(after! modus-themes
+  :config
+  ;; Syntax highlighting
+  (setq modus-themes-italic-constructs t)
+  (setq modus-themes-bold-constructs t)
+  (setq modus-themes-variable-pitch-ui t)
+  (setq modus-themes-mixed-fonts t)
+  ;; Color customizations
+  (setq modus-themes-prompts '(bold))
+  (setq modus-themes-completions '((t background intense accented)))
+  (setq modus-themes-org-blocks 'gray-background)
+
+  ;; Font sizes for titles and headings, including org
+  (setq modus-themes-headings
+        '((1 . (rainbow overline background 1.5))
+          (2 . (rainbow background 1.2))
+          (3 . (rainbow bold 1.1))
+          (t . (semilight 1.0))))
+  (setq modus-themes-scale-headings t)
+  ;; Line numbers
+  (setq modus-themes-common-palette-overrides
+      '((fg-line-number-inactive "gray50")
+        (fg-line-number-active fg-main)
+        (bg-line-number-inactive unspecified)
+        (bg-line-number-active unspecified)))
+  ;; Vterm
+  ;;(setq modus-themes-common-palette-overrides
+  ;;      '(())))
+  ;; Modeline
+  (setq modus-themes-common-palette-overrides
+        '((bg-mode-line-active bg-inactive)
+          (fg-mode-line-active fg-main)
+          (bg-mode-line-inactive bg-inactive)
+          (fg-mode-line-active fg-dim)
+          (border-mode-line-active bg-inactive)
+          (border-mode-line-inactive bg-main))))
+
+
+#+end_src
+
+**** Trancperency
+#+begin_src emacs-lisp
+(set-frame-parameter nil 'alpha-background 70)
+(add-to-list 'default-frame-alist '(alpha-background . 70))
+#+end_src
+**** Theme
+#+name: Activate theme
+#+begin_src emacs-lisp
+;;(setq doom-theme 'modus-vivendi-tinted)
+;;(load-theme 'modus-vivendi-tinted t)
+(setq doom-theme 'doom-palenight)
+#+end_src
+**** Popup
+#+begin_src emacs-lisp
+(set-popup-rules!
+  '(("^\\*doom"
+     :size 0.35 :select t :modeline t :quit t :ttl t)
+    ("^\\M-x" :select t)))
+#+end_src
+*** General config
+**** Personal
+#+name: Contact info
+#+begin_src emacs-lisp
+(setq user-full-name <<username>>
+      user-mail-address <<email>>)
+#+end_src
+
+#+name: Auth
+#+begin_src emacs-lisp
+(setq auth-sources '("~/.authinfo.gpg")
+      auth-source-cache-expiry nil)
+#+end_src
+
+**** Misc
+#+name: Utils
+#+begin_src emacs-lisp
+(setq display-line-numbers-type 'relative)
+
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+(setq-default tab-width 4)
+(setq-default evil-shift-width tab-width)
+(setq-default indent-tabs-mode-nil)
+
+(setq-default
+ delete-by-moving-to-trash t
+ window-combination-resize t
+ x-stretch-cursor t)
+
+(setq undo-limit 80000000
+      evil-want-fine-undo t
+      auto-save-default t
+      truncate-string-ellipsis "..."
+      password-cache-expiry nil
+      scroll-margin 2)
+
+
+(display-time-mode 1)
+(setq-default major-mode 'org-mode)
+
+(setq doom-scratch-initial-major-mode 'org-mode)
+
+(global-subword-mode 1)
+
+(setq +format-on-save-disabled-modes
+        '(sql-mode           ; sqlformat is currently broken
+          tex-mode           ; latexindent is broken
+          latex-mode
+          org-msg-edit-mode
+          dockerfile-mode)) ; doesn't need a formatter
+
+#+end_src
+
+#+name: Coterm
+#+begin_src emacs-lisp
+(after! coterm
+  (coterm-mode))
+#+end_src
+
+#+name: Lookup
+#+begin_src emacs-lisp
+(setq +lookup-provider-url-alist
+      '(("Doom Emacs issues" "https://github.com/hlissner/doom-emacs/issues?q=is%%3Aissue+%s")
+        ("DuckDuckGo"        +lookup--online-backend-duckduckgo "https://duckduckgo.com/?q=%s")
+        ("StackOverflow"     "https://stackoverflow.com/search?q=%s")
+        ("Github"            "https://github.com/search?ref=simplesearch&q=%s")
+        ("Youtube"           "https://youtube.com/results?aq=f&oq=&search_query=%s")))
+#+end_src
+
+#+name: super save
+#+begin_src emacs-lisp
+(use-package! super-save
+  :defer 1
+  :diminish super-save-mode
+  :config
+  (super-save-mode +1)
+  (setq super-save-auto-save-when-idle t))
+#+end_src
+#+name: Which key
+#+begin_src emacs-lisp
+(setq which-key-idle-delay 0.5) ;; OCD
+(setq which-key-popup-type 'side-window)
+(setq which-key-side-window-location 'bottom)
+(setq which-key-side-window-max-width 0.33)
+(setq which-key-side-window-max-height 0.25)
+(setq which-key-allow-multiple-replacements t)
+(after! which-key
+  (pushnew!
+   which-key-replacement-alist
+   '(("" . "\\`+?evil[-:]?\\(?:a-\\)?\\(.*\\)") . (nil . "◂\\1"))
+   '(("\\`g s" . "\\`evilem--?motion-\\(.*\\)") . (nil . "◃\\1"))))
+#+end_src
+
+#+name: Prevent flicker
+#+begin_src emacs-lisp
+(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
+#+end_src
+
+#+name: Clear snippets
+#+begin_src emacs-lisp
+(add-hook! 'org-babel-pre-tangle-hook
+  (when (file-directory-p "snippets")
+    (require 'async)
+    (async-start
+     (lambda ()
+       (delete-directory "snippets" t (not (null delete-by-moving-to-trash))))
+     (lambda (result)
+       (print! "Delete snippets dir got: " result)))))
+#+end_src
+
+
+#+name: Reload env
+#+begin_src emacs-lisp
+(add-hook! 'doom-after-reload-hook (doom-load-envvars-file (expand-file-name "env" doom-local-dir) t))
+#+end_src
+
+**** Keybindings
+#+name: Keybindings
+#+begin_src emacs-lisp
+(map! :map general-override-mode-map
+      :n "C-h" #'evil-window-left
+      :n "C-j" #'evil-window-down
+      :n "C-l" #'evil-window-right
+      :n "C-k" #'evil-window-up
+      :n "M-s-n" #'neotree-toggle
+      :n "M-s-[" #'+tabs:previous-or-goto
+      :n "M-s-]" #'+tabs:next-or-goto
+      :n "M-s-q" #'kill-current-buffer
+      ;;:n "M-s-o" #'bufler
+      :n "M-s-o" #'ibuffer
+      :i "M-s-o" #'sly-mrepl-clear-repl
+      :n "M-s-y" #'sly
+      :n "M-s-\\" #'window-split-toggle
+      :n "M-s-/" #'which-key-show-full-keymap
+      :n "SPC C-c" #'comint-run
+      :n "M-s-v" #'multi-vterm)
+
+(map! :map evil-window-map
+      "SPC" #'rotate-layout
+      "'"   #'evil-window-split
+      "%"   #'evil-window-vsplit
+      "h"   #'+evil/window-move-left
+      "j"   #'+evil/window-move-down
+      "l"   #'+evil/window-move-right
+      "k"   #'+evil/window-move-up)
+
+(map! :map lsp-ui-mode-map
+      :ni "C-c C-k" #'lsp-ui-doc-focus-frame
+      :ni "C-c C-r" #'lsp-ui-peek-find-references
+      :ni "C-C C-d" #'lsp-ui-peek-find-definitions
+      :ni "C-c m" #'lsp-ui-imenu)
+
+(map! :map sphinx-doc-mode-map
+      :n "C-c s-d" #'sphinx-doc)
+
+
+(map! :n [mouse-8] #'better-jumper-jump-backward
+      :n [mouse-9] #'better-jumper-jump-forward)
+#+end_src
+
+**** Tabs
+Since centaur tabs does not run nicely with daemon.
+#+name: Centaur tabs
+#+begin_src emacs-lisp
+(after! centaur-tabs
+  (setq centaur-tabs-set-bar 'right))
+#+end_src
+
+**** Windows
+#+name: Windows
+#+begin_src emacs-lisp
+(defadvice! prompt-for-buffer (&rest _)
+  :after '(evil-window-split evil-window-vsplit)
+  (consult-buffer))
+#+end_src
+
+**** Evil
+**** Windows
+#+name: Windows
+#+begin_src emacs-lisp
+(setq evil-vsplit-window-right t
+      evil-split-window-below t)
+#+end_src
+**** Fine undo
+#+begin_src emacs-lisp
+(setq evil-want-fine-undo t)
+#+end_src
+**** Global substitue
+#+begin_src emacs-lisp
+(setq evil-ex-substitue-global t)
+#+end_src
+**** Ignore visual text in the kill ring
+#+begin_src emacs-lisp
+(setq evil-kill-on-visual-paste nil)
+#+end_src
+**** Company
+#+name: Company
+#+begin_src emacs-lisp
+(after! company
+  :config
+  (setq company-idle-delay 0.1
+        company-minimum-prefix-length 2
+        company-show-numbers t
+        company-require-match nil
+        company-tooltip-align-annotations t))
+#+end_src
+
+#+RESULTS: Company
+: t
+
+**** ibuffer
+**** Ibuffer Size
+#+name: ibuffer-size
+#+begin_src emacs-lisp
+;; Use human readable Size column instead of original one
+;;(define-ibuffer-column size-h
+;;  (:name "Size" :inline t)
+;;  (cond
+;;   ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+;;   ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+;;   ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+;;   (t (format "%8d" (buffer-size)))))
+#+end_src
+
+**** Filters
+#+name: ibuffer-filters
+#+begin_src emacs-lisp
+;;(setq ibuffer-saved-filter-groups
+;;      (' (("default"
+;;           ("dired" (mode . dired-mode))
+;;           ("magit" (name . "^magit"))
+;;           ("org" (mode . org-mode))
+;;           ("planner" (or
+;;                       (name . "^\\*Calendar\\*$")
+;;                       (name . "^\\*Org Agenda\\*$")))
+;;           ("vterm" (mode . vterm-mode))
+;;           ("emacs" (or
+;;                     (name . "^\\*scratch\\*$")
+;;                     (name . "^\\*Messages\\*$")))))))
+#+end_src
+
+**** Better defaults
+#+name: ibuffer-better-defaults
+#+begin_src emacs-lisp
+(setq ibuffer-expert t)
+#+end_src
+**** Combinding settings
+#+name: ibuffer settings
+#+begin_src emacs-lisp :noweb yes
+(after! ibuffer
+  <<ibuffer-better-defaults>>
+  <<ibuffer-size>>
+  <<ibuffer-filters>>
+  :add-hook 'ibuffer-mode-hook (lambda () (ibuffer-switch-to-saved-filter-groups "default")))
+
+#+end_src
+
+#+RESULTS: ibuffer settings
+
+*** Language specific
+**** LISP
+
+#+name: Centaur tabs
+#+begin_src emacs-lisp
+(after! sly
+  (setq sly-lisp-implementations
+        '((roswell ("/usr/bin/ros" "-L" "sbcl-bin" "run"))))
+
+
+  (setq inferior-lisp-program "/usr/bin/ros -L sbcl-bin run")
+  (setq sly-default-lisp 'roswell))
+#+end_src
+
+**** ORG
+#+name: Org settings
+#+begin_src emacs-lisp
+(require 'org)
+(after! org
+  (setq org-directory "~/git/notes/org/"))
+
+(after! org-agenda
+  (setq org-agenda-files (list "~/git/notes/org/todo.org"
+                               "~/git/notes/org/work.org")))
+
+
+(use-package! visual-fill-column
+  :custom
+  (visual-fill-column-width 300)
+  (visual-fill-column-center-text t)
+  :hook (org-mode . visual-fill-column-mode))
+
+(setq org-use-property-inheritance t)
+(setq org-superstar-headline-bullets-list '("› "))
+(setq org-superstar-item-bullet-alist '((?* . ?⋆)
+                                        (?+ . ?‣)
+                                        (?- . ?•)))
+(setq org-ellipsis " ▾")
+#+end_src
+
+#+RESULTS:
+: ~/git/notes/roam
+
+#+name: elken
+#+begin_src emacs-lisp
+(defun elken/org-font-setup ()
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Montserrat" :weight 'regular :height (cdr face) :slant 'unspecified))
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-tag nil :foreground nil :inherit '(shadow fixed-pitch) :weight 'bold)
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+
+#+end_src
+
+#+name: org-jira
+#+begin_src emacs-lisp
+(setq jiralib-url "https://lexxpluss.atlassian.net/")
+(setq org-jira-working-dir "/home/user/git/notes/org/jira")
+(setq request-log-level 'debug)
+(setq request-message-level 'debug)
+#+end_src
+
+#+RESULTS: org-jira
+: debug
+
+#+name: Org buffer
+#+begin_src emacs-lisp
+(evil-define-command +evil-buffer-org-new (count file)
+  "Creates a new ORG buffer replacing the current window, optionally
+   editing a certain FILE"
+  :repeat nil
+  (interactive "P<f>")
+  (if file
+      (evil-edit file)
+    (let ((buffer (generate-new-buffer "*new org*")))
+      (set-window-buffer nil buffer)
+      (with-current-buffer buffer
+        (org-mode)
+        (setq-local doom-real-buffer-p t)))))
+
+(map! :leader
+      (:prefix "b"
+       :desc "New empty Org buffer" "o" #'+evil-buffer-org-new))
+#+end_src
+
+#+name: Roam
+#+begin_src emacs-lisp
+(after! org-roam
+  :custom
+  (setq org-roam-directory "~/git/notes/roam")
+  :config
+  (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}"))
+
+(use-package! websocket
+  :after org-roam)
+
+(use-package! org-roam-ui
+  :after org-roam
+  :config
+  (setq org-roam-ui-sync-theme t)
+  org-roam-ui-follow t
+  org-roam-ui-update-on-save t
+  org-roam-ui-open-on-start t)
+
+#+end_src
+
+#+RESULTS: Roam
+: t
+
+#+name: Journal
+#+begin_src emacs-lisp
+(after! org-journal
+  (setq org-journal-find-file #'find-file-other-window)
+  (map! :leader :desc "Open today's journal" "j" #'org-journal-open-current-journal-file))
+#+end_src
+
+#+name: Start Agenda on startup
+#+begin_src emacs-lisp
+(add-hook 'after-init-hook 'org-agenda-list)
+#+end_src
+
+#+name: Ligatures
+#+begin_src emacs-lisp
+(setq-hook! org-mode
+  prettify-symbols-alist '(("#+end_quote" . "”")
+                           ("#+END_QUOTE" . "”")
+                           ("#+begin_quote" . "“")
+                           ("#+BEGIN_QUOTE" . "“")
+                           ("#+end_src" . "«")
+                           ("#+END_SRC" . "«")
+                           ("#+begin_src" . "»")
+                           ("#+BEGIN_SRC" . "»")
+                           ("#+name:" . "»")
+                           ("#+NAME:" . "»")))
+#+end_src
+
+#+name: Keywords
+#+begin_src emacs-lisp
+(after! org
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "INPROG(i)" "PROJ(p)" "STORY(s)" "WAIT(w@/!)" "|" "DONE(d@/!)" "KILL(k@/!)")
+          (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))
+        ;; The triggers break down to the following rules:
+
+        ;; - Moving a task to =KILLED= adds a =killed= tag
+        ;; - Moving a task to =WAIT= adds a =waiting= tag
+        ;; - Moving a task to a done state removes =WAIT= and =HOLD= tags
+        ;; - Moving a task to =TODO= removes all tags
+        ;; - Moving a task to =NEXT= removes all tags
+        ;; - Moving a task to =DONE= removes all tags
+        org-todo-state-tags-triggers
+        '(("KILL" ("killed" . t))
+          ("HOLD" ("hold" . t))
+          ("WAIT" ("waiting" . t))
+          (done ("waiting") ("hold"))
+          ("TODO" ("waiting") ("cancelled") ("hold"))
+          ("NEXT" ("waiting") ("cancelled") ("hold"))
+          ("DONE" ("waiting") ("cancelled") ("hold")))
+
+        ;; This settings allows to fixup the state of a todo item without
+        ;; triggering notes or log.
+        org-treat-S-cursor-todo-selection-as-state-change nil))
+#+end_src
+
+#+name: org-timeline
+#+begin_src emacs-lisp
+(use-package! ox-timeline
+    :after org-mode
+    :config (setq org-timeline-source-url "~/.config/emacs/modules/timeline/dist"))
+#+end_src
+
+#+RESULTS: org-timeline
+
+***** Agenda
+#+begin_src emacs-lisp
+(setq org-agenda-start-with-log-mode t)
+(setq org-log-done 'time)
+(setq org-log-into-drawer t)
+(setq org-cycle-emulate-tab nil)
+(setq org-startup-folded 'content)
+#+end_src
+***** Appear
+#+begin_src emacs-lisp
+(use-package! org-appear
+  :after org
+  :hook (org-mode . org-appear-mode)
+  :config
+  (setq org-appear-autoemphasis t
+        org-appear-autolinks t
+        org-appear-autosubmarkers t))
+#+end_src
+
+**** LSP related
+#+name: Org settings
+#+begin_src emacs-lisp
+(after! lsp-ui
+  (setq lsp-ui-sideline-show-diagnostics t)
+  (setq lsp-ui-sideline-show-hover t)
+  (setq lsp-ui-sideline-delay 1)
+  (setq lsp-ui-sideline-show-code-actions t)
+  (setq lsp-ui-doc-enable t)
+  (setq lsp-ui-doc-show-with-cursor t)
+  (setq lsp-ui-imenu-kind-position 'top)
+  (setq lsp-ui-imenu-enable t)
+  (setq lsp-ui-peek-always-show t))
+#+end_src
+
+**** Docker
+#+name: Docker compose command override
+#+begin_src emacs-lisp
+(after! docker
+  (setq docker-compose-command "docker compose"))
+#+end_src
+**** Python
+
+#+name: python configs
+#+begin_src emacs-lisp
+(add-hook! 'python-mode-hook (lambda ()
+                               (require 'sphinx-doc)
+                               (sphinx-doc-mode t)))
+(require 'pyenv-mode)
+
+(defun projectile-pyenv-mode-set ()
+  "Set pyenv version matching project name."
+  (let ((project (projectile-project-name)))
+    (if (member project (pyenv-mode-versions))
+        (pyenv-mode-set project)
+      (pyenv-mode-unset))))
+
+(add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
+#+end_src
+
+*** VTERM
+**** Configs
+#+name: configs
+#+begin_src emacs-lisp
+(setq vterm-always-compile-module t)
+(setq vterm-kill-buffer-on-exit t)
+(setq vterm-shell "/bin/zsh")
+
+(use-package! multi-vterm
+        :after vterm)
+#+end_src
+**** Key bindings
+#+name: Keybindings
+#+begin_src emacs-lisp
+(after! vterm
+  (map! :map vterm-mode-map
+        :leader
+        :prefix ("v" . "vterm")
+        :desc "vterm" "x" #'vterm
+        :desc "multi" "m" #'multi-vterm))
+#+end_src
+
+*** Doom dash
+**** Dash keymap
+#+name: Doom dash keymap
+#+begin_src emacs-lisp
+(defun +doom-dashboard-setup-modified-keymap ()
+  (setq +doom-dashboard-mode-map (make-sparse-keymap))
+  (map! :map +doom-dashboard-mode-map
+        :desc "Find file" :ng "f" #'find-file
+        :desc "Recent files" :ng "r" #'consult-recent-file
+        :desc "Config.el" :ng "c" (cmd! (find-file (expand-file-name "config.el" doom-user-dir)))
+        :desc "Config dir" :ng "C" #'doom/open-private-config
+        :desc "Memo" :ng "m" (cmd! (doom-project-find-file "~/Documents/memos/"))
+        :desc "dotfiles" :ng "." (cmd! (doom-project-find-file "~/.config/"))
+        :desc "Switch buffer" :ng "C" #'doom/open-private-config
+        :desc "Switch buffers (all)" :ng "B" #'consult-buffer
+        :desc "IBuffer" :ng "i" #'ibuffer
+        :desc "Previous buffer" :ng "p" #'previous-buffer
+        :desc "Set theme" :ng "t" #'consult-theme
+        :desc "Quit" :ng "Q" #'save-buffers-kill-terminal
+        :desc "Show keybindings" :ng "h" (cmd! (which-key-show-keymap '+doom-dashboard-mode-map))))
+
+(assoc-delete-all "Open org-agenda" +doom-dashboard-menu-sections)
+(assoc-delete-all "Jump to bookmark" +doom-dashboard-menu-sections)
+
+(add-to-list '+doom-dashboard-menu-sections
+        '("www lookup"
+                :key "w"
+                :icon (all-the-icons-faicon "eye" :face 'doom-dashboard-menu-title)
+                :action +lookup/online) t)
+(add-to-list '+doom-dashboard-menu-sections
+        '("vterm"
+                :key "v"
+                :icon (all-the-icons-alltheicon "terminal-alt" :face 'doom-dashboard-menu-title)
+                :action multi-vterm) t)
+(add-to-list '+doom-dashboard-menu-sections
+        '("recent files"
+                :key "R"
+                :icon (all-the-icons-faicon "files-o" :face 'doom-dashboard-menu-title)
+                :action consult-recent-file) t)
+(add-to-list '+doom-dashboard-menu-sections
+        '("previous buffer"
+                :key "p"
+                :icon (all-the-icons-octicon "pulse" :face 'doom-dashboard-menu-title)
+                :action previous-buffer) t)
+#+end_src
+
+#+RESULTS: Doom dash keymap
+| Recently opened files      | :icon | (nerd-icons-faicon nf-fa-file_text :face 'doom-dashboard-menu-title)   | :action | recentf-open-files                                                                                                                                                             |         |                                             |         |                     |
+| Reload last session        | :icon | (nerd-icons-octicon nf-oct-history :face 'doom-dashboard-menu-title)   | :when   | (cond ((modulep! :ui workspaces) (file-exists-p (expand-file-name persp-auto-save-fname persp-save-dir))) ((require 'desktop nil t) (file-exists-p (desktop-full-file-name)))) | :action | doom/quickload-session                      |         |                     |
+| Open project               | :icon | (nerd-icons-octicon nf-oct-briefcase :face 'doom-dashboard-menu-title) | :action | projectile-switch-project                                                                                                                                                      |         |                                             |         |                     |
+| Open private configuration | :icon | (nerd-icons-octicon nf-oct-tools :face 'doom-dashboard-menu-title)     | :when   | (file-directory-p doom-user-dir)                                                                                                                                               | :action | doom/open-private-config                    |         |                     |
+| Open documentation         | :icon | (nerd-icons-octicon nf-oct-book :face 'doom-dashboard-menu-title)      | :action | doom/help                                                                                                                                                                      |         |                                             |         |                     |
+| www lookup                 | :key  | w                                                                      | :icon   | (all-the-icons-octicon telescope :face 'doom-dashboard-menu-title)                                                                                                             | :action | +lookup/online                              |         |                     |
+| vterm                      | :key  | v                                                                      | :icon   | (all-the-icons-octicon terminal :face 'doom-dashboard-menu-title)                                                                                                              | :action | multi-vterm                                 |         |                     |
+| recent files               | :key  | R                                                                      | :action | consult-recent-file                                                                                                                                                            |         |                                             |         |                     |
+| previous buffer            | :key  | p                                                                      | :action | previous-buffer                                                                                                                                                                |         |                                             |         |                     |
+| www lookup                 | :key  | w                                                                      | :icon   | (all-the-icons-faicon eye :face 'doom-dashboard-menu-title)                                                                                                                    | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | +lookup/online      |
+| vterm                      | :key  | v                                                                      | :icon   | (all-the-icons-alltheicon terminal-alt :face 'doom-dashboard-menu-title)                                                                                                       | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | multi-vterm         |
+| recent files               | :key  | R                                                                      | :icon   | (all-the-icons-faicon files-o :face 'doom-dashboard-menu-title)                                                                                                                | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | consult-recent-file |
+| previous buffer            | :key  | p                                                                      | :icon   | (all-the-icons-octicon pulse :face 'doom-dashboard-menu-title)                                                                                                                 | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | previous-buffer     |
+
+#+name: leader mapping
+#+begin_src emacs-lisp
+(map! :leader :desc "DoomDash" "d" #'+doom-dashboard/open)
+#+end_src
+**** Hooks
+#+name: Faces
+#+begin_src emacs-lisp
+(custom-set-faces!
+  '(doom-dashboard-banner :foreground "red" :background "#000000" :weight bold)
+  '(doom-dashboard-footer :inherit font-lock-constant-face)
+  '(doom-dashboard-footer-icon :inherit all-the-icons-red)
+  '(doom-dashboard-loaded :inherit font-lock-warning-face)
+  '(doom-dashboard-menu-desc :inherit font-lock-string-face)
+  '(doom-dashboard-menu-title :inherit font-lock-function-name-face))
+#+end_src
+
+#+begin_src emacs-lisp
+;;(remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-shortmenu)
+(remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-footer)
+(remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-loaded)
+(remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-banner)
+(setq +doom-dashboard-banner-padding '(0 . 2))
+(add-hook! '+doom-dashboard-functions :append
+  (insert "\n" (+doom-dashboard--center +doom-dashboard--width "Envy is ignorance, Imitation is Suicide.")))
+#+end_src
+
+#+RESULTS:
+
+#+begin_src emacs-lisp
+;;(remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-banner)
+(setq fancy-splash-image (expand-file-name "misc/images/meditate.svg" doom-private-dir))
+#+end_src
+
+#+RESULTS:
+: /home/user/.config/doom/misc/images/meditate.svg
+
+*** Emacs everywhere
+#+name: EVERYWHERE
+#+begin_src emacs-lisp
+(use-package! emacs-everywhere
+  :if (daemonp)
+  :config
+  (require 'spell-fu)
+  (setq emacs-everywhere-major-mode-function #'markdown-mode
+        emacs-everywhere-frame-name-format "Edit ∷ %s — %s")
+  (defadvice! emacs-everywhere-raise-frame ()
+    :after #'emacs-everywhere-set-frame-name
+    (setq emacs-everywhere-frame-name (format emacs-everywhere-frame-name-format)
+          (emacs-everywhere-app-class emacs-everywhere-current-app)
+          (truncate-string-to-width
+           (emacs-everywhere-app-title emacs-everywhere-current-app)
+           45 nil nil "…"))
+    ;; need to wait till frame refresh happen before really set
+    (run-with-timer 0.1 nil #'emacs-everywhere-raise-frame-1))
+  (setq! emacs-everywhere-file-dir "/home/user/tmp/")
+  (defun emacs-everywhere-raise-frame-1 ()
+    (call-process "wmctrl" nil nil nil "-a" emacs-everywhere-frame-name)))
+#+end_src
+
+*** Daemon
+#+name: greedy daemon
+#+begin_src emacs-lisp
+(defun greedily-do-daemon-setup ()
+  (require 'org)
+  (when (require 'mu4e nil t)
+    (setq mu4e-confirm-quit t)
+    (setq +mu4e-lock-greedy t)
+    (setq +mu4e-lock-relaxed t)
+    (when (+mu4e-lock-available t)
+      (mu4e--start)))
+  (when (require 'elfeed nil t)
+    (run-at-time nil (* 8 60 60) #'elfeed-update)))
+
+(when (daemonp)
+  (add-hook 'emacs-startup-hook #'greedily-do-daemon-setup)
+  (add-hook! 'server-after-make-frame-hook
+    (unless (string-match-p "\\*draft\\|\\*stdin\\|emacs-everywhere\\|everywhere\\|xprop*" (buffer-name))
+      (switch-to-buffer +doom-dashboard-name))))
+#+end_src
+
+*** LSP/DAP
+**** LSP
+Better defaults
+#+begin_src emacs-lisp
+(after! lsp-mode
+  (setq +lsp-company-backends
+        '(:separate company-capf company-yasnippet company-dabbrev)))
+#+end_src
+**** DAP
+Increase variable line length
+#+begin_src emacs-lisp
+(setq dap-ui-variable-length 200)
+(after! dap-mode
+  (setq dap-python-debugger 'debugpy))
+(map! :map dap-mode-map
+      :leader
+      :prefix ("z" . "dap")
+      ;; basics
+      :desc "dap next"          "n" #'dap-next
+      :desc "dap step in"       "i" #'dap-step-in
+      :desc "dap step out"      "o" #'dap-step-out
+      :desc "dap continue"      "c" #'dap-continue
+      :desc "dap hydra"         "h" #'dap-hydra
+      :desc "dap debug restart" "r" #'dap-debug-restart
+      :desc "dap debug"         "s" #'dap-debug
+
+      ;; debug
+      :prefix ("zd" . "Debug")
+      :desc "dap debug recent"  "r" #'dap-debug-recent
+      :desc "dap debug last"    "l" #'dap-debug-last
+
+      ;; eval
+      :prefix ("ze" . "Eval")
+      :desc "eval"                "e" #'dap-eval
+      :desc "eval region"         "r" #'dap-eval-region
+      :desc "eval thing at point" "s" #'dap-eval-thing-at-point
+      :desc "add expression"      "a" #'dap-ui-expressions-add
+      :desc "remove expression"   "d" #'dap-ui-expressions-remove
+
+      :prefix ("zb" . "Breakpoint")
+      :desc "dap breakpoint toggle"      "b" #'dap-breakpoint-toggle
+      :desc "dap breakpoint condition"   "c" #'dap-breakpoint-condition
+      :desc "dap breakpoint hit count"   "h" #'dap-breakpoint-hit-condition
+      :desc "dap breakpoint log message" "l" #'dap-breakpoint-log-message)
+#+end_src
+
+#+name: Templates
+#+begin_src emacs-lisp
+(after! dap-mode
+  (dap-register-debug-template "LexxTest runtest (Auto main)"
+    (list :type "python"
+          :args (list "--data" "{\"repo\": \"LexxAuto\", \"branch\": \"main\"}")
+          :cwd "/home/user/git/LexxTest"
+          :target-module "/home/user/git/LexxTest/runtest.py"
+          :request "launch"
+          :name "LexxTest"))
+  (dap-register-debug-template "LexxTest runtest (Msgsim (no A20)"
+    (list :type "python"
+          :args (list "--data" "{\"repo\": \"LexxMsgsim\", \"body\": \"/test test_airbic_a20=FALSE\", \"args\": {\"/home/user/git/LexxTest/test_setup\": null, \"/home/user/git/LexxTest/test_msgsim\": null, \"--wp=/home/user/tmp/test/\": null}}")
+          :cwd "/home/user/git/LexxTest"
+          :target-module "/home/user/git/LexxTest/runtest.py"
+          :request "launch"
+          :name "LexxTest"))
+  (dap-register-debug-template "LexxTest pytest (Msgsim (no A20)"
+    (list :type "python"
+          :module "pytest"
+          :args (list "-s" "--log_path=/home/user/git/LexxTest/.cache/log/run-ef3985889656" "--data_file=/home/user/git/LexxTest/.cache/log/run-ef3985889656/test_env.pkl" "/home/user/git/LexxTest/test_setup" "/home/user/git/LexxTest/test_msgsim" "--wp=/home/user/tmp/test/" "--no-clean")
+          :cwd "/home/user/git/LexxTest"
+          :request "launch"
+          :name "LexxTest")))
+#+end_src
+*** Spelling
+#+begin_src emacs-lisp
+(setq ispell-program-name "aspell"
+      ispell-extra-args '("--sug-mode=ultra" "--lang=en_GB")
+      ispell-dictionary "en"
+      ispell-personal-dictionary "~/Nextcloud/dict")
+
+(after! cape
+  (setq cape-dict-file (if (file-exists-p ispell-personal-dictionary) ispell-personal-dictionary cape-dict-file)))
+#+end_src
+*** Copilot
+**** Prerequisites
+- Emacs >= 27
+- NodeJS >= 16
+
+**** Setup
+- Accept completion from copilot.
+- Fallback to company.
+#+name: Copilot config
+#+begin_src emacs-lisp
+(use-package! copilot
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("RET" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+
+(after! copilot
+  (global-copilot-mode 1))
+#+end_src
+
+**** Login
+M-x copilot-login
+
+*** Github
+**** Review
+Setup in auth sources
+#+name: review
+#+begin_comment
+machine api.github.com login yourlogin^github-review password MYTOKENGOESHERE
+#+end_comment
+
+**** Get reviews
+#+name: Get reviews
+#+begin_src emacs-lisp
+(defun get-reviews ()
+  (split-string (shell-command-to-string "gh search prs --state=open --review-requested=@me --json url --template '{{range .}}{{tablerow .url }}{{end}}' | cat")))
+
+;;(list (shell-command-to-string "gh search prs --state=open --review-requested=@me --json url,title --template '{{range .}}{{tablerow (printf \"{%s, %s}\" .title .url) }}{{end}}' | cat"))
+;;  (shell-command-to-string "gh search prs --state=open --review-requested=@me --json url,title --template '{{range .}}{{tablerow .title .url }}{{end}}' | cat")
+;;(add-to-list '+doom-dashboard-menu-sections
+;;        '("reviews"
+;;                :key "r"
+;;                :icon (all-the-icons-faicon "eye" :face 'doom-dashboard-menu-title)
+;;                :action 'get-reviews) t)
+
+#+end_src
+*** Useful links
+- https://elken.github.io/doom/#org565ac46
+- https://tecosaur.github.io/emacs-config/config.html#doom-configuration
+- https://hieuphay.com/doom-emacs-config/  (DOOM EMACS with compiled v29)
+*** Emacs 29
+**** To compile
+#+begin_example
+sudo apt-get install libgccjit-10-dev librsvg2-bin build-essential texinfo libx11-dev libxpm-dev libjpeg-dev libpng-dev libgif-dev libtiff-dev libgtk-3-dev libncurses-dev libgnutls28-dev
+cd emacs-29.1
+./configure --with-x-toolkit=no --with-native-compilation --with-json --with-rsvg
+make clean
+make -j16
+sudo make install
+#+end_example
+
+*** Editing(FIXME)
+**** Atomic Chrome (firefox supported)
+
+Requires https://addons.mozilla.org/en-US/firefox/addon/ghosttext/
+#+name: Browser in emacs
+#+begin_src emacs-lisp
+(use-package! atmoic-chrome
+    :init
+    (atomic-chrome-start-server)
+    :config
+    (setq atomic-chrome-default-major-mode 'org-mode
+          atomic-chrome-buffer-open-style 'frame
+          atomic-chrome-url-major-mode-alist `(("github\\.com" . gfm-mode)
+                                               ("notion\\.so" . markdown-mode)
+                                               ("\\.slack\\.com" . gfm-mode)
+                                               ("\\.atlassian\\.net" . gfm-mode))))
+
+#+end_src
+**** Usage
+    -- Start Emacs.
+    -- Focus the text area you want to edit on the browser.
+    -- Press Atomic Chrome button on the tool bar.
+    -- Contet of the text area is opened in a new buffer of Emacs.
+    -- Edit content on Emacs buffer.
+    -- C-c C-c to finish editing, or the buffer killed if the browser closes the connection.
+**** Writeroom
+No distractions
+#+name: writeroom
+#+begin_src emacs-lisp
+(use-package! writeroom-mode
+  :init (global-writeroom-mode 1)
+  :config
+  (setq writeroom-width 100
+        writeroom-fullscreen-effect nil
+        writeroom-maximize-window nil
+        writeroom-mode-line t
+        writeroom-major-modes '(org-mode markdown-mode text-mode)))
+#+end_src
+
+**** Iedit
+#+begin_comment
+https://config.phundrak.com/emacs/packages/editing#iedit
+https://github.com/syl20bnr/evil-iedit-state
+#+end_comment
