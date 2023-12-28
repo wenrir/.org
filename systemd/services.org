@@ -1,9 +1,13 @@
 #+title: Services
 #+options: prop:t
+#+include: ./secrets.org
 
 * EMACS
-#+name: emacs service
-#+begin_src conf :comments no :mkdirp yes :tangle ~/.config/systemd/user/emacs.service
+** Daenmon
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/systemd/user/emacs.service :noweb tangle
+:END:
+#+begin_src conf
 [Unit]
 Description=Emacs server daemon
 Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
@@ -18,11 +22,65 @@ Restart=on-failure
 [Install]
 WantedBy=default.target
 #+end_src
-
+** Start service
 #+name: start service
-#+begin_src sh
+#+begin_src sh :results silent :tangle no
 systemctl --user enable emacs.service
 systemctl --user start emacs.service
 #+end_src
 
-#+RESULTS: start service
+* EVREMAP
+** Daemon
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/evremap/evremap.service :noweb tangle
+:END:
+#+begin_src conf
+[Service]
+WorkingDirectory=/
+ExecStart=bash -c "/usr/bin/evremap remap /home/<<user>>/.config/evremap/evremap.toml -d 0"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+#+end_src
+
+** Config
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/evremap/evremap.toml :noweb tangle
+:END:
+#+begin_src toml
+device_name = "AT Translated Set 2 keyboard"
+phys = "usb-0000:00:14.0-1/input0"
+# Swap MODE and FN
+[[remap]]
+input = ["KEY_FN"]
+output = ["KEY_MODE"]
+
+[[remap]]
+input = ["KEY_RIGHTCTRL"]
+output = ["KEY_FN"]
+
+[[remap]]
+input = ["KEY_CAPSLOCK"]
+output = ["KEY_LEFTCTRL"]
+
+# vim-like navigation.
+#TODO Why does not KEY_WAKEUP want to be remapped ... ()
+#+end_src
+
+** Start service (needs to be executed as root)
+#+name: reload / enable service
+#+begin_src sh :dir /sudo:: :results silent :tangle no
+cp ~/.config/evremap/evremap.service /usr/lib/systemd/system
+#+end_src
+
+#+name: reload / enable service
+#+begin_src sh :dir /sudo:: :results silent :tangle no
+systemctl daemon-reload
+systemctl enable evremap.service
+#+end_src
+
+#+name: start service
+#+begin_src sh :dir /sudo:: :results silent :tangle no
+systemctl start evremap.service
+#+end_src

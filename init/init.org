@@ -1,99 +1,55 @@
 #+TITLE: Arch setup
 #+PROPERTY: header-args :comments link :tangle-mode (identity #o444)
-#+include: ./config.org
 #+options: prop:t
-
 * Tools
+** ROSWELL
+#+begin_src sh :dir /sudo:: :results silent
+  sudo pacman -S roswell
+  ros
+#+end_src
+** kernels
+- linux
+- linux-lts
 ** Standard tools
 #+name: standard-tools-install
-#+begin_src sh :dir /sudo:: :results silent
-   yes | pacman -S --needed git base-devel vim
+#+begin_src conf :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
+   sudo pacman -S git base-devel vim intel-ucode bash-completion curl wget
 #+end_src
 ** Man pages
-#+begin_src sh :dir /sudo:: :results silent :noweb yes
-  yes | pacman -S --needed man-db
-  yes | pacman -S --needed man-pages-<<MAN-LANG>>
+#+name: MAN-LANG
+#+begin_src conf
+en
+#+end_src
+
+#+begin_src conf :results silent :noweb yes :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
+  sudo pacman -S --needed man-db
+  sudo pacman -S --needed man-pages-<<MAN-LANG>>
 #+end_src
 *** Using emacs as PAGER
 TODO
-** Yay
-#+begin_src sh :results silent
+** Util
+*** Compress
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
+  sudo pacman -S unrar tar rsync unzip
+#+end_src
+*** Yay
+#+begin_src conf :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
    git clone https://aur.archlinux.org/yay-bin.git
    cd yay-bin/
    makepkg -si
    yay -Y --gendb
    yay -Syu --devel
    yay -Y --devel --save
+   cd ..
+   rm -rf yay-bin/
 #+end_src
-
 * Keybindings
 Imagine using CTRL []
 ** Evremap
 #+name: install evremap
-#+begin_src sh :results silent
-git clone https://aur.archlinux.org/evremap-git.git
-cd evremap-git
-makepkg -Acs --needed
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
+yay -S evremap-git
 #+end_src
-*** Daemon
-#+begin_src conf :dir /sudo:: :tangle /usr/lib/systemd/system/evremap.service :comments yes
-[Service]
-WorkingDirectory=/
-ExecStart=bash -c "/usr/bin/evremap remap /etc/evremap.toml -d 0"
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-#+end_src
-
-** Config
-#+begin_src toml :tangle /etc/evremap.toml :comments yes :dir /sudo::
-device_name = "AT Translated Set 2 keyboard"
-# Swap MODE and FN
-[[remap]]
-input = ["KEY_FN"]
-output = ["KEY_MODE"]
-
-[[remap]]
-input = ["KEY_RIGHTCTRL"]
-output = ["KEY_FN"]
-
-[[remap]]
-input = ["KEY_CAPSLOCK"]
-output = ["KEY_LEFTCTRL"]
-
-# vim-like navigation.
-#TODO Why does not KEY_WAKEUP want to be remapped ... ()
-
-#[[remap]]
-#input = ["KEY_TAB", "KEY_H"]
-#output = ["KEY_LEFT"]
-#
-#[[remap]]
-#input = ["KEY_TAB", "KEY_J"]
-#output = ["KEY_DOWN"]
-#
-#[[remap]]
-#input = ["KEY_TAB", "KEY_K"]
-#output = ["KEY_UP"]
-
-[[remap]]
-input = ["KEY_TAB", "KEY_L"]
-output = ["KEY_RIGHT"]
-#+end_src
-
-** Start service
-#+name: reload / enable service
-#+begin_src sh :dir /sudo:: :results silent
-systemctl daemon-reload
-systemctl enable evremap.service
-#+end_src
-
-#+name: start service
-#+begin_src sh :dir /sudo:: :results silent
-systemctl start evremap.service
-#+end_src
-
 * Tracking dotfiles directly in git
 ** Why bare?
       To keep it minimal without external tools, keeping setup clean with dotfiles where they are expected to be located, no symlinks or strange re-routing with additional tools.
@@ -106,99 +62,102 @@ systemctl start evremap.service
 mkdir ~/.dotfiles
 
 #+name: Init bare repo.
-#+begin_src sh :results silent
+#+begin_src conf :results silent :tangle ./scripts/setup.sh :comments yes :mkdirp yes
 git init --bare ~/.dotfiles
 #+end_src
 
 Make $HOME work tree and git dir $HOME/.dotfiles for the bare .dotfiles repo.
 
 #+name: Add dot alias
-#+begin_src sh :results silent
+#+begin_src conf :results silent :tangle ./scripts/setup.sh :comments yes :mkdirp yes
 alias dot='/usr/bin/git --git-dir="$HOME/.dotfiles" --work-tree="$HOME"'
 #+end_src
 
 And ofcourse add alias to whatever shell we're using, e.g. bash
-#+begin_src sh :results silent
+#+begin_src conf :results silent :tangle ./scripts/setup.sh :comments yes :mkdirp yes
 echo "alias dot='/usr/bin/git --git-dir=$HOME/.dotfiles --work-tree=$HOME'" >> $HOME/.bashrc
 #+end_src
 
 Don't show untracked files in the dotfiles repo, as we're working in $HOME.
 #+name: showUntrackedFiles
-#+begin_src sh :results silent
+#+begin_src conf :results silent :tangle ./scripts/setup.sh :comments yes :mkdirp yes
 dot config status.showUntrackedFiles no
 #+end_src
 *** Why not show untracked files?
 Just track files in work-tree ($HOME) that's been pushed to the bare repository.
 *** For bash completion
-#+begin_src sh :dir /sudo:: :results silent
-yes | pacman -S bash-completion
+#+begin_src conf :results silent :tangle ./scripts/setup.sh :comments yes :mkdirp yes
 complete -F _complete_alias dot
 #+end_src
 * SWAY
-** Install foot 
-#+name: Install foot
-#+begin_src sh :dir /sudo:: :results silent
-yes | pacman -S foot
-#+end_src
 ** SwayFx
 #+begin_src sh :dir /sudo:: :results silent
   git clone https://aur.archlinux.org/swayfx.git
   cd swayfx
   makepg -si
-  yes | pacman -S seatd waybar
   cd ..
   rm -rf swayfx
 #+end_src
+** Install sway related packages
+#+name: Install foot
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
+yes | pacman -S foot seatd waybar
+#+end_src
 * Emacs
 #+name: install wayland emacs
-#+begin_src sh :dir /sudo:: :results silent
-  yes | pacman -S --needed emacs-wayland
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
+  pacman -S emacs-wayland
+#+end_src
+** Pre
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/doom.sh :comments yes :mkdirp yes
+  pacman -S fd ripgrep
 #+end_src
 ** Doom
-#+begin_src sh :results silent
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/doom.sh :comments yes :mkdirp yes
 git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 export PATH="$HOME/.config/emacs/bin:$PATH"
 echo 'export PATH=$HOME/.config/emacs/bin:$PATH' >> ~/.bashrc
 ~/.config/emacs/bin/doom install
 #+end_src
+** Sly
+#+begin_src emacs-lisp :results silent
+(package-install 'sly)
+#+end_src
+
 ** Node
 Node is required for package-install.
-#+begin_src sh :dir /sudo:: :results silent
-yes | pacman -S nodejs-lts-iron
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/doom.sh :comments yes :mkdirp yes
+pacman -S nodejs-lts-iron
 #+end_src
 ** Python
-#+begin_src sh :dir /sudo:: :results silent
-yes | pacman -S python python-pip python-pytest python-nose python-black python-isort
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/doom.sh :comments yes :mkdirp yes
+pacman -S python python-pip python-pytest python-nose python-black python-isort
 #+end_src
 *** Pyenv
-#+begin_src sh :results silent
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/pyenv.sh :comments yes :mkdirp yes
 curl https://pyenv.run | bash
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
 echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
 echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 #+end_src
 ** Vterm
-#+begin_src sh :dir /sudo:: :results silent
-yes | pacman -S --needed libvterm make cmake
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/doom.sh :comments yes :mkdirp yes
+pacman -S libvterm make cmake
 #+end_src
 ** Icons
-#+begin_src emacs-lisp
-
-#+end_src
-* ROSWELL
-#+begin_src sh :dir /sudo:: :results silent
-  yes | pacman -Syu roswell
-  ros
-#+end_src
-*** Sly
-#+begin_src emacs-lisp
-(package-install 'sly)
+#+begin_src emacs-lisp :results silent
+(funcall 'all-the-icons-install-fonts)
+(funcall 'nerd-icons-install-fonts)
 #+end_src
 
 * Version/backup management
+TODO
 ** Anex
-#+begin_src sh :dir /sudo:: :results silent
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
 pacman -S git-annex
+#+end_src
+
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/setup.sh :comments yes :mkdirp yes
 mkdir annex
 cd annex/
 git init
@@ -219,12 +178,11 @@ restic init --repo /media/samsung_portable_ssd/arch-backup/
 * GPG
 ** Install
 #+name: install gpg
-#+begin_src sh :dir /sudo:: :results silent
-   pacman -S gnupg
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/gpg.sh :comments yes :mkdirp yes
+   sudo pacman -S gnupg
 #+end_src
-
 ** Generate key
 #+name: generate gpg key
-#+begin_src sh :results silent
+#+begin_src conf :dir /sudo:: :results silent :tangle ./scripts/gpg.sh :comments yes :mkdirp yes
    gpg --gen-key
 #+end_src

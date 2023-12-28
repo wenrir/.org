@@ -5,6 +5,7 @@
 #+property: header-args+ :noweb tangle
 #+options: prop:t
 #+include: ./config.org
+#+include: ./secrets.org
 
 * Git
 ** Config

@@ -10,5 +10,6 @@
 # Undo-tree save-files
 *.~undo-tree
 
-config.org
+secrets.org
 .tangle
+init/scripts/
