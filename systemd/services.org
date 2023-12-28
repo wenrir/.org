@@ -3,7 +3,7 @@
 #+include: ./secrets.org
 
 * EMACS
-** Daenmon
+** Daemon
 :PROPERTIES:
 :header-args: :comments no :mkdirp yes :tangle ~/.config/systemd/user/emacs.service :noweb tangle
 :END:

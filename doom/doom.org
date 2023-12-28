@@ -1,0 +1,220 @@
+#+title: Doom configs
+#+options: prop:t
+#+startup: fold
+#+include: ./secrets.org
+#+include: ./config.org
+
+* Doom
+** init
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/doom/init.el :noweb tangle
+:END:
+#+begin_src emacs-lisp
+;;; init.el -*- lexical-binding: t; -*-
+
+(doom! :input
+       japanese
+
+       :completion
+       (company +childframe)
+       (vertico +icons)
+
+       :ui
+       doom
+       doom-dashboard
+       doom-quit
+       hl-todo
+       (ligatures +extra)
+       minimap
+       modeline
+       nav-flash
+       neotree
+       ophints
+       (popup +all +defaults)
+       tabs
+       (vc-gutter +pretty)
+       vi-tilde-fringe
+       (window-select +numbers)
+       workspaces
+       zen
+
+       :editor
+       (evil +everywhere)
+       file-templates
+       fold
+       (format +onsave)
+       multiple-cursors
+       parinfer
+       rotate-text
+       snippets
+
+       :emacs
+       (dired +ranger +icons)
+       electric
+       (ibuffer +icons)
+       undo
+       vc
+
+       :term
+       (eshell)
+       vterm
+
+       :checkers
+       syntax
+       (:if (executable-find "aspell") spell)
+       grammar
+
+       :tools
+       ansible
+       biblio
+       (debugger +lsp)
+       docker
+       (eval +overlay)
+       (lookup +dictionary +docsets)
+       (lsp +peek)
+       (magit +forge)
+       make
+       pass
+       rgb
+       taskrunner
+       tree-sitter
+
+       :os
+       tty
+
+       :lang
+       common-lisp
+       emacs-lisp
+       hy
+       json
+       javascript
+       markdown
+       (org +roam2 +crypt)
+       (python +lsp +pyright +pyenv +tree-sitter)
+       (rust +lsp)
+       sh
+       (web +lsp +tree-sitter)
+       yaml
+
+       :email
+
+       :app
+       everywhere
+
+       :config
+       literate
+       (default +bindings +smartparens))
+#+end_src
+
+** package
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/doom/package.el :noweb tangle
+:END:
+
+#+name: header
+#+begin_src emacs-lisp
+;; -*- no-byte-compile: t; -*-
+#+end_src
+
+*** coterm
+ Terminal emulation for comint
+#+name: coterm
+#+begin_src emacs-lisp
+(package! coterm)
+#+end_src
+*** org-roam-ui
+Frontend for exploring org-roam.
+#+name: org-roam-ui
+#+begin_src emacs-lisp
+(unpin! org)
+(unpin! org-roam)
+(package! org-roam-ui)
+#+end_src
+*** rotate
+ Rotate windows
+#+name: rotate
+#+begin_src emacs-lisp
+(package! rotate :pin "4e9ac3ff800880bd9b705794ef0f7c99d72900a6")
+#+end_src
+*** dap-mode
+ Dap mode
+#+name: rotate
+#+begin_src emacs-lisp
+(package! dap-mode)
+#+end_src
+
+*** sphinx-doc
+ Generate Sphinx friendly docstrings for Python functions in Emacs
+ #+name: sphinx-doc
+ #+begin_src emacs-lisp
+(package! sphinx-doc)
+ #+end_src
+*** multi vterm
+Multiple vterm buffers
+#+name: multi vterm
+#+begin_src emacs-lisp
+(package! multi-vterm)
+#+end_src
+*** Marginalia
+Marginalia in the minibuffer
+#+name: marginalia
+#+begin_src emacs-lisp
+(package! marginalia)
+#+end_src
+
+*** info colors
+ Extra colors for Emacs's Info-mode
+#+begin_src emacs-lisp
+(package! info-colors)
+#+end_src
+*** Visual fill wrappings
+Emacs mode for wrapping visual-line-mode buffers at fill-column.
+#+begin_src emacs-lisp
+(package! visual-fill-column)
+#+end_src
+
+*** Org appear
+Make invisible parts of Org elements appear visible.
+#+begin_src emacs-lisp
+(package! org-appear
+  :recipe (:host github :repo "awth13/org-appear"))
+#+end_src
+
+*** Modus themes
+Doom themes are nice but sometimes I like to spare my eyes...
+#+begin_src emacs-lisp
+(package! modus-themes)
+#+end_src
+
+*** Copilot
+Mainly from work, copilot is not really that helpful.
+#+begin_src emacs-lisp
+(package! copilot
+  :recipe (:host github :repo "zerolfx/copilot.el" :files ("*.el" "dist")))
+#+end_src
+
+*** Github review
+Review gh prs in emacs. mainly for work.
+#+begin_src emacs-lisp
+(package!
+  github-review
+  :recipe
+  (:host github
+   :repo "charignon/github-review"
+   :files ("github-review.el")))
+#+end_src
+*** JIRA
+Jira in org mode, mainly for work.
+#+begin_src emacs-lisp
+(package! org-jira)
+#+end_src
+*** Atomic chrome
+When emacs everywhere does not work ...
+#+begin_src emacs-lisp
+(package! atomic-chrome)
+#+end_src
+*** Writeroom
+Focus ...
+#+begin_src emacs-lisp
+(package! writeroom-mode)
+#+end_src

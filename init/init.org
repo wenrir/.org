@@ -13,7 +13,7 @@
 ** Standard tools
 #+name: standard-tools-install
 #+begin_src conf :results silent :tangle ./scripts/std-tools.sh :comments yes :mkdirp yes
-   sudo pacman -S git base-devel vim intel-ucode bash-completion curl wget
+   sudo pacman -S git base-devel vim intel-ucode bash-completion curl wget pass
 #+end_src
 ** Man pages
 #+name: MAN-LANG
