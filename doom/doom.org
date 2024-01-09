@@ -113,12 +113,10 @@ Recognize untruth as a condition to life.
 :PROPERTIES:
 :header-args: :comments no :mkdirp yes :tangle ~/.config/doom/packages.el :noweb tangle
 :END:
-
 #+name: header
 #+begin_src emacs-lisp
 ;; -*- no-byte-compile: t; -*-
 #+end_src
-
 *** coterm
  Terminal emulation for comint
 #+name: coterm
@@ -409,8 +407,6 @@ Focus ...
           (fg-mode-line-active fg-dim)
           (border-mode-line-active bg-inactive)
           (border-mode-line-inactive bg-main))))
-
-
 #+end_src
 
 **** Trancperency
@@ -561,18 +557,18 @@ Focus ...
       :n "C-j" #'evil-window-down
       :n "C-l" #'evil-window-right
       :n "C-k" #'evil-window-up
-      :n "M-s-n" #'neotree-toggle
-      :n "M-s-[" #'+tabs:previous-or-goto
-      :n "M-s-]" #'+tabs:next-or-goto
-      :n "M-s-q" #'kill-current-buffer
+      :n "s-n" #'neotree-toggle
+      :n "s-[" #'+tabs:previous-or-goto
+      :n "s-]" #'+tabs:next-or-goto
+      :n "s-q" #'kill-current-buffer
       ;;:n "M-s-o" #'bufler
-      :n "M-s-o" #'ibuffer
-      :i "M-s-o" #'sly-mrepl-clear-repl
-      :n "M-s-y" #'sly
-      :n "M-s-\\" #'window-split-toggle
-      :n "M-s-/" #'which-key-show-full-keymap
+      :n "s-o" #'ibuffer
+      :i "s-o" #'sly-mrepl-clear-repl
+      :n "s-y" #'sly
+      :n "s-\\" #'window-split-toggle
+      :n "s-/" #'which-key-show-full-keymap
       :n "SPC C-c" #'comint-run
-      :n "M-s-v" #'multi-vterm)
+      :n "s-v" #'multi-vterm)
 
 (map! :map evil-window-map
       "SPC" #'rotate-layout
@@ -614,21 +610,21 @@ Since centaur tabs does not run nicely with daemon.
 #+end_src
 
 **** Evil
-**** Windows
+***** Windows
 #+name: Windows
 #+begin_src emacs-lisp
 (setq evil-vsplit-window-right t
       evil-split-window-below t)
 #+end_src
-**** Fine undo
+***** Fine undo
 #+begin_src emacs-lisp
 (setq evil-want-fine-undo t)
 #+end_src
-**** Global substitue
+***** Global substitue
 #+begin_src emacs-lisp
 (setq evil-ex-substitue-global t)
 #+end_src
-**** Ignore visual text in the kill ring
+***** Ignore visual text in the kill ring
 #+begin_src emacs-lisp
 (setq evil-kill-on-visual-paste nil)
 #+end_src
@@ -644,11 +640,8 @@ Since centaur tabs does not run nicely with daemon.
         company-tooltip-align-annotations t))
 #+end_src
 
-#+RESULTS: Company
-: t
-
 **** ibuffer
-**** Ibuffer Size
+***** Ibuffer Size
 #+name: ibuffer-size
 #+begin_src emacs-lisp
 ;; Use human readable Size column instead of original one
@@ -661,7 +654,7 @@ Since centaur tabs does not run nicely with daemon.
 ;;   (t (format "%8d" (buffer-size)))))
 #+end_src
 
-**** Filters
+***** Filters
 #+name: ibuffer-filters
 #+begin_src emacs-lisp
 ;;(setq ibuffer-saved-filter-groups
@@ -678,7 +671,7 @@ Since centaur tabs does not run nicely with daemon.
 ;;                     (name . "^\\*Messages\\*$")))))))
 #+end_src
 
-**** Better defaults
+***** Better defaults
 #+name: ibuffer-better-defaults
 #+begin_src emacs-lisp
 (setq ibuffer-expert t)
@@ -698,7 +691,6 @@ Since centaur tabs does not run nicely with daemon.
 
 *** Language specific
 **** LISP
-
 #+name: Centaur tabs
 #+begin_src emacs-lisp
 (after! sly
@@ -715,11 +707,11 @@ Since centaur tabs does not run nicely with daemon.
 #+begin_src emacs-lisp
 (require 'org)
 (after! org
-  (setq org-directory "~/git/notes/org/"))
+  (setq org-directory "<<org-dir>>"))
 
 (after! org-agenda
-  (setq org-agenda-files (list "~/git/notes/org/todo.org"
-                               "~/git/notes/org/work.org")))
+  (setq org-agenda-files (list "<<org-agenda-todo>>"
+                               "<<org-agenda-work>>")))
 
 
 (use-package! visual-fill-column
@@ -735,9 +727,6 @@ Since centaur tabs does not run nicely with daemon.
                                         (?- . ?•)))
 (setq org-ellipsis " ▾")
 #+end_src
-
-#+RESULTS:
-: ~/git/notes/roam
 
 #+name: elken
 #+begin_src emacs-lisp
@@ -767,14 +756,11 @@ Since centaur tabs does not run nicely with daemon.
 
 #+name: org-jira
 #+begin_src emacs-lisp
-(setq jiralib-url "https://lexxpluss.atlassian.net/")
-(setq org-jira-working-dir "/home/user/git/notes/org/jira")
+(setq jiralib-url "<<jira-url>>")
+(setq org-jira-working-dir "<<jira-work-dir>>")
 (setq request-log-level 'debug)
 (setq request-message-level 'debug)
 #+end_src
-
-#+RESULTS: org-jira
-: debug
 
 #+name: Org buffer
 #+begin_src emacs-lisp
@@ -800,7 +786,7 @@ Since centaur tabs does not run nicely with daemon.
 #+begin_src emacs-lisp
 (after! org-roam
   :custom
-  (setq org-roam-directory "~/git/notes/roam")
+  (setq org-roam-directory "<<org-roam-dir>>")
   :config
   (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}"))
 
@@ -816,9 +802,6 @@ Since centaur tabs does not run nicely with daemon.
   org-roam-ui-open-on-start t)
 
 #+end_src
-
-#+RESULTS: Roam
-: t
 
 #+name: Journal
 #+begin_src emacs-lisp
@@ -874,15 +857,6 @@ Since centaur tabs does not run nicely with daemon.
         ;; triggering notes or log.
         org-treat-S-cursor-todo-selection-as-state-change nil))
 #+end_src
-
-#+name: org-timeline
-#+begin_src emacs-lisp
-(use-package! ox-timeline
-    :after org-mode
-    :config (setq org-timeline-source-url "~/.config/emacs/modules/timeline/dist"))
-#+end_src
-
-#+RESULTS: org-timeline
 
 ***** Agenda
 #+begin_src emacs-lisp
@@ -1059,9 +1033,6 @@ Since centaur tabs does not run nicely with daemon.
 (setq fancy-splash-image (expand-file-name "misc/images/meditate.svg" doom-private-dir))
 #+end_src
 
-#+RESULTS:
-: /home/user/.config/doom/misc/images/meditate.svg
-
 *** Emacs everywhere
 #+name: EVERYWHERE
 #+begin_src emacs-lisp
@@ -1152,31 +1123,6 @@ Increase variable line length
       :desc "dap breakpoint log message" "l" #'dap-breakpoint-log-message)
 #+end_src
 
-#+name: Templates
-#+begin_src emacs-lisp
-(after! dap-mode
-  (dap-register-debug-template "LexxTest runtest (Auto main)"
-    (list :type "python"
-          :args (list "--data" "{\"repo\": \"LexxAuto\", \"branch\": \"main\"}")
-          :cwd "/home/user/git/LexxTest"
-          :target-module "/home/user/git/LexxTest/runtest.py"
-          :request "launch"
-          :name "LexxTest"))
-  (dap-register-debug-template "LexxTest runtest (Msgsim (no A20)"
-    (list :type "python"
-          :args (list "--data" "{\"repo\": \"LexxMsgsim\", \"body\": \"/test test_airbic_a20=FALSE\", \"args\": {\"/home/user/git/LexxTest/test_setup\": null, \"/home/user/git/LexxTest/test_msgsim\": null, \"--wp=/home/user/tmp/test/\": null}}")
-          :cwd "/home/user/git/LexxTest"
-          :target-module "/home/user/git/LexxTest/runtest.py"
-          :request "launch"
-          :name "LexxTest"))
-  (dap-register-debug-template "LexxTest pytest (Msgsim (no A20)"
-    (list :type "python"
-          :module "pytest"
-          :args (list "-s" "--log_path=/home/user/git/LexxTest/.cache/log/run-ef3985889656" "--data_file=/home/user/git/LexxTest/.cache/log/run-ef3985889656/test_env.pkl" "/home/user/git/LexxTest/test_setup" "/home/user/git/LexxTest/test_msgsim" "--wp=/home/user/tmp/test/" "--no-clean")
-          :cwd "/home/user/git/LexxTest"
-          :request "launch"
-          :name "LexxTest")))
-#+end_src
 *** Spelling
 #+begin_src emacs-lisp
 (setq ispell-program-name "aspell"
@@ -1206,8 +1152,8 @@ Increase variable line length
               ("C-TAB" . 'copilot-accept-completion-by-word)
               ("C-<tab>" . 'copilot-accept-completion-by-word)))
 
-(after! copilot
-  (global-copilot-mode 1))
+;(after! copilot
+;  (global-copilot-mode 1))
 #+end_src
 
 **** Login

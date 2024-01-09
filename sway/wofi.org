@@ -1,0 +1,76 @@
+#+title: Wofi configs
+#+options: prop:t
+#+include: ./config.org
+
+* Config
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/wofi/config :noweb tangle
+:END:
+*** General
+#+begin_src conf
+term=foot
+location=top
+yoffset=280
+width=70%
+lines=10
+
+prompt=
+show=drun
+insensitive=true
+allow_images=true
+hide_scroll=true
+
+aways_parse_args=true
+show_all=true
+#+end_src
+*** Keybinds
+#+begin_src  conf
+key_down=Control_L-j
+key_up=Control_L-k
+#+end_src
+
+* Style
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.config/wofi/style.css :noweb tangle
+:END:
+#+begin_src conf
+window {
+    margin: 0px;
+    border: 1px solid <<hex-violet>>;
+    background-color: rgba(<<rgb-bg>>, 0.2);
+}
+
+#input {
+    margin: 2px;
+    border: none;
+    color: <<hex-blue>>;
+    background-color: rgba(<<rgb-grey>>, 0.6);
+}
+
+#inner-box {
+    margin: 2px;
+    border: none;
+    background-color: rgba(<<rgb-bg>>, 0.2);
+}
+
+#outer-box {
+    margin: 1px;
+    border: none;
+    background-color: rgba(<<rgb-bg>>, 0.2);
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#text {
+    margin: 2px;
+    border: none;
+    color: <<hex-fg>>;
+}
+
+#entry:selected {
+    background-color: rgba(<<rgb-violet>>, 0.4);
+}
+#+end_src

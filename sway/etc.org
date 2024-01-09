@@ -1,0 +1,18 @@
+#+title: etc
+#+options: prop:t
+#+startup: fold
+#+include: ./secrets.org
+#+include: ./config.org
+
+* Profile
+** login shell (user)
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.profile :noweb tangle
+:END:
+
+A login shell is an invocation mode, in which the shell reads files intended for one-time initialization, such as system-wide /etc/profile or the user's ~/.profile or other shell-specific file(s). These files set up the initial environment, which is inherited by all other processes started from the shell (including other non-login shells or graphical programs). Hence, they are read only once at the beginning of a session, which is, for example, when the user logs in to the console or via SSH, changes the user with sudo or su using the --login parameter, or when the user manually invokes a login shell (e.g. by bash --login). 
+#+begin_src emacs-lisp
+if [ -z "${WAYLAND_DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
+  exec sway
+fi
+#+end_src

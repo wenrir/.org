@@ -1,0 +1,229 @@
+#+title: Config
+#+options: prop:t
+
+* CONFIGS
+** Colors
+:PROPERTIES:
+:header-args: :tangle no
+:END:
+*** Palenight
+[[https://github.com/Brettm12345/doom-palenight-theme/blob/master/doom-palenight-theme.el][doom-palenight]]
+**** Hex
+#+name: hex-bg
+#+begin_src conf
+#292D3E
+#+end_src
+#+name: hex-bg-alt
+#+begin_src conf
+#21242b
+#+end_src
+#+name: hex-base0
+#+begin_src conf
+#1c1f2b
+#+end_src
+#+name: hex-base1
+#+begin_src conf
+#1e212e
+#+end_src
+#+name: hex-base2
+#+begin_src conf
+#242837
+#+end_src
+#+name: hex-base3
+#+begin_src conf
+#3C435E
+#+end_src
+#+name: hex-base4
+#+begin_src conf
+#4E5579
+#+end_src
+#+name: hex-base5
+#+begin_src conf
+#676E95
+#+end_src
+#+name: hex-base6
+#+begin_src conf
+#697098
+#+end_src
+#+name: hex-base7
+#+begin_src conf
+#717CB4
+#+end_src
+#+name: hex-base8
+#+begin_src conf
+#A6Accd
+#+end_src
+#+name: hex-fg
+#+begin_src conf
+#EEFFFF
+#+end_src
+#+name: hex-fg-alt
+#+begin_src conf
+#BFC7D5
+#+end_src
+#+name: hex-grey
+#+begin_src conf
+#4E5579
+#+end_src
+#+name: hex-red
+#+begin_src conf
+#FF5370
+#+end_src
+#+name: hex-orange
+#+begin_src conf
+#F78C6C
+#+end_src
+#+name: hex-green
+#+begin_src conf
+#C3E88D
+#+end_src
+#+name: hex-darker-green
+#+begin_src conf
+#2a5c45
+#+end_src
+#+name: hex-teal
+#+begin_src conf
+#44B9B1
+#+end_src
+#+name: hex-yellow
+#+begin_src conf
+#FFCB6B
+#+end_src
+#+name: hex-blue
+#+begin_src conf
+#82aaff
+#+end_src
+#+name: hex-dark-blue
+#+begin_src conf
+#b2ccd6
+#+end_src
+#+name: hex-magenta
+#+begin_src conf
+#c792ea
+#+end_src
+#+name: hex-violet
+#+begin_src conf
+#bb80b3
+#+end_src
+#+name: hex-cyan
+#+begin_src conf
+#78CCF0
+#+end_src
+#+name: hex-dark-cyan
+#+begin_src conf
+#80CBC4
+#+end_src
+**** RGB (kind of)
+#+name: rgb-bg
+#+begin_src conf
+41, 45, 62
+#+end_src
+#+name: rgb-bg-alt
+#+begin_src conf
+33, 36, 43
+#+end_src
+#+name: rgb-base0
+#+begin_src conf
+28, 31, 43
+#+end_src
+#+name: rgb-base1
+#+begin_src conf
+30, 33, 46
+#+end_src
+#+name: rgb-base2
+#+begin_src conf
+36, 40, 55
+#+end_src
+#+name: rgb-base3
+#+begin_src conf
+60, 67, 94
+#+end_src
+#+name: rgb-base4
+#+begin_src conf
+78, 85, 121
+#+end_src
+#+name: rgb-base5
+#+begin_src conf
+103, 110, 149
+#+end_src
+#+name: rgb-base6
+#+begin_src conf
+105, 112, 152
+#+end_src
+#+name: rgb-base7
+#+begin_src conf
+113, 124, 180
+#+end_src
+#+name: rgb-base8
+#+begin_src conf
+166, 172, 205
+#+end_src
+#+name: rgb-fg
+#+begin_src conf
+238, 255, 255
+#+end_src
+#+name: rgb-fg-alt
+#+begin_src conf
+191, 199, 213
+#+end_src
+#+name: rgb-grey
+#+begin_src conf
+78, 85, 121
+#+end_src
+#+name: rgb-red
+#+begin_src conf
+255, 83, 112
+#+end_src
+#+name: rgb-orange
+#+begin_src conf
+247, 140, 108
+#+end_src
+#+name: rgb-green
+#+begin_src conf
+195, 232, 141
+#+end_src
+#+name: rgb-teal
+#+begin_src conf
+68, 185, 177
+#+end_src
+#+name: rgb-yellow
+#+begin_src conf
+255, 203, 107
+#+end_src
+#+name: rgb-blue
+#+begin_src conf
+130, 170, 255
+#+end_src
+#+name: rgb-dark-blue
+#+begin_src conf
+178, 204, 214
+#+end_src
+#+name: rgb-magenta
+#+begin_src conf
+199, 146, 234
+#+end_src
+#+name: rgb-violet
+#+begin_src conf
+187, 128, 179
+#+end_src
+#+name: rgb-cyan
+#+begin_src conf
+120, 204, 240
+#+end_src
+#+name: rgb-dark-cyan
+#+begin_src conf
+128, 203, 196
+#+end_src
+
+*** Gruvbox
+#+begin_comment
+TODO
+#+end_comment
+** Fonts
+:PROPERTIES:
+:header-args: :tangle no
+:END:
+#+name: font-family
+#+begin_src conf
+MonaspaceKrypton
+#+end_src
