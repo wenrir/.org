@@ -1,0 +1,16 @@
+#+title: Grim
+#+options: prop:t
+
+* Install
+#+begin_src sh
+pacman -S grim slurp
+#+end_src
+* Config
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.local/bin/capture-screen :noweb tangle
+:END:
+#+begin_src sh
+#!/bin/bash
+FILENAME="screenshot-`date +%F-%T`"
+grim -g "$(slurp)" ~/captures/$FILENAME.png
+#+end_src

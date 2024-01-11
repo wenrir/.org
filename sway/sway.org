@@ -265,6 +265,13 @@ bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 #+end_src
 
+*** Capture screen
+
+#+name: Screenshot
+#+begin_src conf
+bindsym $mod+Shift+S exec $HOME/.local/bin/capture-screen
+#+end_src
+
 *** Resize
 #+begin_src conf
 mode "resize" {

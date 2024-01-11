@@ -1,11 +1,15 @@
 #+title: Readme
 
 * Motivation
-This is my first iteration in escaping the abyss that I've for year been sinking into.
-After many projects and setups, I recognized the same pattern, 1) Setup my system 2) Add configurations 3) Forget why (or that I added) a configuration in the first place 4) Revisting configs and get lost in the mess.
-It was time to escape and .org repository is the first iteration in trying to do so.
+This is my first iteration in escaping the configuration abyss that I've for years been sinking into.
+After multiple projects and setups, I recognized the same pattern,
+1) Setup my system
+2) Write and add configurations
+3) Forget why (or that I added) a configuration in the first place
+4) Revisting configs and get lost in the mess.
+I got tired of sinking, it was time to swim.
 
-I started this project without any intention in sharing it, it's just a collection of literate dotfiles. If used locally, be careful noting that this is just for reference and ultimately you not run any code from this repo without knowing what's going on.
+I started this project without any intention of sharing it, it's just a collection of literate dotfiles. If used locally, beware that this is just for reference and ultimately you should not run any code from this repo without understanding it's purpose.
 
 * Structure
 Each subdirectory relates to one configuration file on the host system.
@@ -21,6 +25,7 @@ Template available under `util/secrets.template.org`
 * Makefile
 ** Prerequisites
 - [[https://github.com/roswell/roswell][Roswell]]
+- emacs
 ** Build tangle script
 #+begin_src shell
 make build
@@ -29,3 +34,7 @@ make build
 #+begin_src shell
 make tangle
 #+end_src
+
+* Screenshots
+[[file:util/captures/svamp.png][Wallpaper]]
+[[file:util/captures/emacs.png][Emacs]]
