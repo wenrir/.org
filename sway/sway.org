@@ -297,6 +297,10 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 #+end_src
 
+*** Misc
+#+begin_src conf
+bindsym $mod+Shift+M exec $HOME/.local/bin/mac
+#+end_src
 ** Bar
 #+name: waybar
 #+begin_src conf

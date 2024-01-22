@@ -102,7 +102,7 @@ Recognize untruth as a condition to life.
        :email
 
        :app
-       everywhere
+       ;;everywhere
 
        :config
        ;;literate
@@ -220,6 +220,18 @@ Focus ...
 (package! writeroom-mode)
 #+end_src
 
+*** Org-cv
+Not that i'm gonna write resume anytime soon ...
+#+begin_src emacs-lisp
+(package! org-cv
+  :recipe (:host gitlab
+           :repo "Titan-C/org-cv"))
+#+end_src
+*** Org-super-agenda
+#+begin_src emacs-lisp
+(package! org-super-agenda)
+
+#+end_src
 ** Config
 :PROPERTIES:
 :header-args: :comments no :mkdirp yes :tangle ~/.config/doom/config.el :noweb tangle
@@ -420,6 +432,7 @@ Focus ...
 ;;(setq doom-theme 'modus-vivendi-tinted)
 ;;(load-theme 'modus-vivendi-tinted t)
 (setq doom-theme 'doom-palenight)
+(require 'all-the-icons)
 #+end_src
 **** Popup
 #+begin_src emacs-lisp
@@ -709,9 +722,11 @@ Since centaur tabs does not run nicely with daemon.
 (after! org
   (setq org-directory "<<org-dir>>"))
 
+(defun read-agenda-files ()
+  (directory-files-recursively "<<org-agenda-todo>>" ".org$"))
+
 (after! org-agenda
-  (setq org-agenda-files (list "<<org-agenda-todo>>"
-                               "<<org-agenda-work>>")))
+  (setq org-agenda-files (read-agenda-files)))
 
 
 (use-package! visual-fill-column
@@ -725,7 +740,7 @@ Since centaur tabs does not run nicely with daemon.
 (setq org-superstar-item-bullet-alist '((?* . ?⋆)
                                         (?+ . ?‣)
                                         (?- . ?•)))
-(setq org-ellipsis " ▾")
+(setq org-ellipsis " ▾ ")
 #+end_src
 
 #+name: elken
@@ -834,7 +849,16 @@ Since centaur tabs does not run nicely with daemon.
 #+begin_src emacs-lisp
 (after! org
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "INPROG(i)" "PROJ(p)" "STORY(s)" "WAIT(w@/!)" "|" "DONE(d@/!)" "KILL(k@/!)")
+        '((sequence
+                "TODO(t)"
+                "HOME(h)"
+                "INPROG(i)"
+                "PROJ(p)"
+                "STORY(s)"
+                "WAIT(w@/!)"
+                "|"
+                "DONE(d@/!)"
+                "KILL(k@/!)")
           (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))
         ;; The triggers break down to the following rules:
 
@@ -860,11 +884,190 @@ Since centaur tabs does not run nicely with daemon.
 
 ***** Agenda
 #+begin_src emacs-lisp
+(require 'org-agenda) ;; Faster loading
+(require 'org-super-agenda)
+#+end_src
+
+#+begin_src emacs-lisp
 (setq org-agenda-start-with-log-mode t)
 (setq org-log-done 'time)
 (setq org-log-into-drawer t)
 (setq org-cycle-emulate-tab nil)
 (setq org-startup-folded 'content)
+
+
+(defun org-agenda-open-hook ()
+   " Open agenda in writeroom mode "
+   (writeroom-mode))
+
+(add-hook 'org-agenda-mode-hook 'org-agenda-open-hook)
+
+;;; Custom span
+(setq org-agenda-span 1
+      org-agenda-start-day "+0d"
+      org-agenda-skip-timestamp-if-done t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-skip-scheduled-if-done t
+      org-agenda-skip-scheduled-if-deadline-is-shown t
+      org-agenda-skip-timestamp-if-deadline-is-shown t)
+
+;; Custom styles for dates in agenda
+;;(custom-set-faces!
+;;  '(org-agenda-date :inherit outline-1 :height 0.7)
+;;  '(org-agenda-date-today :inherit diary :height 0.7)
+;;  '(org-agenda-date-weekend :ineherit outline-2 :height  0.7)
+;;  '(org-agenda-date-weekend-today :inherit outline-4 :height 0.7)
+;;  '(org-super-agenda-header :inherit custom-button :weight bold :height 1))
+
+
+;; Toggle completed entries function
+(defun org-agenda-toggle-completed ()
+  (interactive)
+  (setq org-agenda-skip-timestamp-if-done (not org-agenda-skip-timestamp-if-done)
+        org-agenda-skip-deadline-if-done (not org-agenda-skip-timestamp-if-done)
+        org-agenda-skip-scheduled-if-done (not org-agenda-skip-timestamp-if-done))
+  (org-agenda-redo))
+
+(map!
+  :map evil-org-agenda-mode-map
+  :after org-agenda
+  :nvmeg "s d" #'org-agenda-toggle-completed)
+
+
+;;; Priority
+(setq
+ org-fancy-priorities-list '("[H]"
+                             "[M]"
+                             "[L]")
+ org-agenda-block-separator 8411)
+
+(setq org-agenda-custom-commands
+      '(("v" "A better agenda view"
+         ((tags "PRIORITY=\"A\""
+                ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done 'scheduled))
+                 (org-agenda-overriding-header "High-priority:")))
+          (tags "PRIORITY=\"B\""
+                ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done 'scheduled))
+                 (org-agenda-overriding-header "Medium-priority:")))
+          (tags "PRIORITY=\"C\""
+                ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done 'scheduled))
+                 (org-agenda-overriding-header "Low-priority:")))
+          (tags "customtag"
+                ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                 (org-agenda-overriding-header "Tasks marked with customtag:")))
+          (agenda ""
+                  ((org-agenda-overriding-header "")
+                   (org-super-agenda-groups
+                    '(
+                        (:name ""
+                         :scheduled past
+                         :order 2
+                         :face 'error)
+                        (:habit t)
+                        (:name " Today"
+                         :time-grid t
+                         :todo "TODO"
+                         :scheduled today
+                         :order 0)))))
+
+          (alltodo "" (
+                       (org-agenda-overriding-header ""
+                         (org-super-agenda-groups
+                          '((:log t)
+                            (:name " Important"
+                             :tag "critical"
+                             :priority "A")
+                            (:name " Personal"
+                             :and(:file-path "agenda/personal/" :not (:tag "event"))
+                             :order 3)
+                            (:name " Project"
+                             :and(:file-path "agenda/project/" :not (:tag "event"))
+                             :order 3)
+                            (:name " Study"
+                             :and(:file-path "agenda/study/" :not (:tag "event"))
+                             :order 3)
+                            (:name " Work"
+                             :and(:file-path "agenda/work/" :not (:tag "event"))
+                             :order 3))))))))))
+
+
+;; Ricing org agenda
+(setq org-agenda-current-time-string "")
+(setq org-agenda-time-grid '((daily) () "" ""))
+
+(setq org-agenda-prefix-format '(
+                                 (agenda . "  %?-2i %t ")
+                                 (todo . " %i %-12:c")
+                                 (tags . " %i %-12:c")
+                                 (search . " %i %-12:c")))
+
+(setq org-agenda-hide-tags-regexp ".*")
+
+(setq org-agenda-category-icon-alist
+      `(("Work" ,(list (all-the-icons-faicon "coffee" :height 0.8)) nil nil :ascent center)
+        ("Project" ,(list (all-the-icons-faicon "home" :v-adjust 0.005)) nil nil :ascent center)
+        ("Study" ,(list (all-the-icons-faicon "pencil" :v-adjust 0.9)) nil nil :ascent center)
+        ("Personal" ,(list (all-the-icons-material "person" :height 0.9)) nil nil :ascent center)))
+
+#+end_src
+
+#+RESULTS:
+| Work     | () | nil | nil | :ascent | center |
+| Project  | () | nil | nil | :ascent | center |
+| Study    | () | nil | nil | :ascent | center |
+| Personal | () | nil | nil | :ascent | center |
+
+***** Super
+#+begin_src emacs-lisp
+
+(setq org-super-agenda-groups
+       '(
+         (:name ""
+                :scheduled past
+                :order 2
+                :face 'error)
+         (:name " Important"
+                :tag "critical"
+                :priority "A")
+         (:name " Personal"
+                :and(:file-path "agenda/personal/" :not (:tag "event"))
+                :order 3)
+         (:name " Project"
+                :and(:file-path "agenda/project/" :not (:tag "event"))
+                :order 3)
+         (:name " Study"
+                :and(:file-path "agenda/study/" :not (:tag "event"))
+                :order 3)
+         (:name " Work"
+                :and(:file-path "agenda/work/" :not (:tag "event"))
+                :order 3)
+         (:name " Today "
+               :time-grid t
+               :scheduled today
+               :order 1
+               :face 'warning)))
+
+(org-super-agenda-mode t)
+
+(map! :desc "Next line"
+      :map org-super-agenda-header-map
+      "j" 'org-agenda-next-line)
+
+(map! :desc "Next line"
+      :map org-super-agenda-header-map
+      "k" 'org-agenda-previous-line)
+
+;;(map! :map org-agenda-mode-map
+;;        :n "C-h" #'evil-window-left
+;;        :n "C-j" #'evil-window-down
+;;        :n "C-l" #'evil-window-right
+;;        :n "C-k" #'evil-window-up
+;;        :n "s-[" #'+tabs:previous-or-goto
+;;        :n "s-]" #'+tabs:next-or-goto
+;;        :n "s-q" #'kill-current-buffer
+;;        :n "s-o" #'ibuffer)
+
+
 #+end_src
 ***** Appear
 #+begin_src emacs-lisp
@@ -985,20 +1188,6 @@ Since centaur tabs does not run nicely with daemon.
                 :action previous-buffer) t)
 #+end_src
 
-#+RESULTS: Doom dash keymap
-| Recently opened files      | :icon | (nerd-icons-faicon nf-fa-file_text :face 'doom-dashboard-menu-title)   | :action | recentf-open-files                                                                                                                                                             |         |                                             |         |                     |
-| Reload last session        | :icon | (nerd-icons-octicon nf-oct-history :face 'doom-dashboard-menu-title)   | :when   | (cond ((modulep! :ui workspaces) (file-exists-p (expand-file-name persp-auto-save-fname persp-save-dir))) ((require 'desktop nil t) (file-exists-p (desktop-full-file-name)))) | :action | doom/quickload-session                      |         |                     |
-| Open project               | :icon | (nerd-icons-octicon nf-oct-briefcase :face 'doom-dashboard-menu-title) | :action | projectile-switch-project                                                                                                                                                      |         |                                             |         |                     |
-| Open private configuration | :icon | (nerd-icons-octicon nf-oct-tools :face 'doom-dashboard-menu-title)     | :when   | (file-directory-p doom-user-dir)                                                                                                                                               | :action | doom/open-private-config                    |         |                     |
-| Open documentation         | :icon | (nerd-icons-octicon nf-oct-book :face 'doom-dashboard-menu-title)      | :action | doom/help                                                                                                                                                                      |         |                                             |         |                     |
-| www lookup                 | :key  | w                                                                      | :icon   | (all-the-icons-octicon telescope :face 'doom-dashboard-menu-title)                                                                                                             | :action | +lookup/online                              |         |                     |
-| vterm                      | :key  | v                                                                      | :icon   | (all-the-icons-octicon terminal :face 'doom-dashboard-menu-title)                                                                                                              | :action | multi-vterm                                 |         |                     |
-| recent files               | :key  | R                                                                      | :action | consult-recent-file                                                                                                                                                            |         |                                             |         |                     |
-| previous buffer            | :key  | p                                                                      | :action | previous-buffer                                                                                                                                                                |         |                                             |         |                     |
-| www lookup                 | :key  | w                                                                      | :icon   | (all-the-icons-faicon eye :face 'doom-dashboard-menu-title)                                                                                                                    | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | +lookup/online      |
-| vterm                      | :key  | v                                                                      | :icon   | (all-the-icons-alltheicon terminal-alt :face 'doom-dashboard-menu-title)                                                                                                       | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | multi-vterm         |
-| recent files               | :key  | R                                                                      | :icon   | (all-the-icons-faicon files-o :face 'doom-dashboard-menu-title)                                                                                                                | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | consult-recent-file |
-| previous buffer            | :key  | p                                                                      | :icon   | (all-the-icons-octicon pulse :face 'doom-dashboard-menu-title)                                                                                                                 | :face   | (:inherit (doom-dashboard-menu-title bold)) | :action | previous-buffer     |
 
 #+name: leader mapping
 #+begin_src emacs-lisp
@@ -1036,24 +1225,24 @@ Since centaur tabs does not run nicely with daemon.
 *** Emacs everywhere
 #+name: EVERYWHERE
 #+begin_src emacs-lisp
-(use-package! emacs-everywhere
-  :if (daemonp)
-  :config
-  (require 'spell-fu)
-  (setq emacs-everywhere-major-mode-function #'markdown-mode
-        emacs-everywhere-frame-name-format "Edit ∷ %s — %s")
-  (defadvice! emacs-everywhere-raise-frame ()
-    :after #'emacs-everywhere-set-frame-name
-    (setq emacs-everywhere-frame-name (format emacs-everywhere-frame-name-format)
-          (emacs-everywhere-app-class emacs-everywhere-current-app)
-          (truncate-string-to-width
-           (emacs-everywhere-app-title emacs-everywhere-current-app)
-           45 nil nil "…"))
-    ;; need to wait till frame refresh happen before really set
-    (run-with-timer 0.1 nil #'emacs-everywhere-raise-frame-1))
-  (setq! emacs-everywhere-file-dir "/home/user/tmp/")
-  (defun emacs-everywhere-raise-frame-1 ()
-    (call-process "wmctrl" nil nil nil "-a" emacs-everywhere-frame-name)))
+;;(use-package! emacs-everywhere
+;;  :if (daemonp)
+;;  :config
+;;  (require 'spell-fu)
+;;  (setq emacs-everywhere-major-mode-function #'markdown-mode
+;;        emacs-everywhere-frame-name-format "Edit ∷ %s — %s")
+;;  (defadvice! emacs-everywhere-raise-frame ()
+;;    :after #'emacs-everywhere-set-frame-name
+;;    (setq emacs-everywhere-frame-name (format emacs-everywhere-frame-name-format)
+;;          (emacs-everywhere-app-class emacs-everywhere-current-app)
+;;          (truncate-string-to-width
+;;           (emacs-everywhere-app-title emacs-everywhere-current-app)
+;;           45 nil nil "…"))
+;;    ;; need to wait till frame refresh happen before really set
+;;    (run-with-timer 0.1 nil #'emacs-everywhere-raise-frame-1))
+;;  (setq! emacs-everywhere-file-dir "/home/user/tmp/")
+;;  (defun emacs-everywhere-raise-frame-1 ()
+;;    (call-process "wmctrl" nil nil nil "-a" emacs-everywhere-frame-name)))
 #+end_src
 
 *** Daemon
@@ -1143,18 +1332,20 @@ Increase variable line length
 - Fallback to company.
 #+name: Copilot config
 #+begin_src emacs-lisp
-(use-package! copilot
-  :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("<tab>" . 'copilot-accept-completion)
-              ("TAB" . 'copilot-accept-completion)
-              ("RET" . 'copilot-accept-completion)
-              ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+;(use-package! copilot
+;  :hook (prog-mode . copilot-mode)
+;  :bind (:map copilot-completion-map
+;              ("<tab>" . 'copilot-accept-completion)
+;              ("TAB" . 'copilot-accept-completion)
+;              ("RET" . 'copilot-accept-completion)
+;              ("C-TAB" . 'copilot-accept-completion-by-word)
+;              ("C-<tab>" . 'copilot-accept-completion-by-word)))
 
 ;(after! copilot
 ;  (global-copilot-mode 1))
 #+end_src
+
+#+RESULTS: Copilot config
 
 **** Login
 M-x copilot-login
@@ -1241,3 +1432,13 @@ No distractions
 https://config.phundrak.com/emacs/packages/editing#iedit
 https://github.com/syl20bnr/evil-iedit-state
 #+end_comment
+
+*** CV
+#+name: org-cv
+#+begin_src emacs-lisp
+
+(use-package! ox-awesomecv
+  :ensure t
+  :after org
+  :init (require 'ox-awesomecv))
+#+end_src

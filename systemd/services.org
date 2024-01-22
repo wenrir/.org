@@ -133,7 +133,7 @@ WantedBy=multi-user.target
 :END:
 #+begin_src toml
 device_name = "AT Translated Set 2 keyboard"
-phys = "usb-0000:00:14.0-1/input0"
+phys = "isa0060/serio0/input0"
 # Swap MODE and FN
 [[remap]]
 input = ["KEY_FN"]

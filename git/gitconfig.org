@@ -15,6 +15,9 @@
 [user]
    email = <<email>>
    name = <<username>>
+[core]
+   editor = mac -nw
+[pull]
+   rebase = false
+
 #+end_src
-*** TODO
-Setup git config to use emacs. (editor diff etc)
