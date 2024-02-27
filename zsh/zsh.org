@@ -1,0 +1,22 @@
+#+title: Zsh
+
+* Install
+#+name: install
+#+begin_src sh
+sudo pacman -S zsh zsh-completions
+sudo pacman -S grml-zsh-config
+#+end_src
+#+name: setup
+#+begin_src zsh
+autoload -Uz zsh-newuser-install
+zsh-newuser-install -f
+chsh -s /usr/bin/zsh
+#+end_src`
+* Config
+:PROPERTIES:
+:header-args: :comments no :mkdirp yes :tangle ~/.zshrc :noweb tangle
+:END:
+
+#+begin_src zsh
+export PATH=$PATH:/usr/local/go/bin
+#+end_src

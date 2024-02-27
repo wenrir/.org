@@ -21,3 +21,11 @@
    rebase = false
 
 #+end_src
+
+* GH CLI
+   :PROPERTIES:
+   :header-args:    :tangle no
+   :END:
+#+begin_src sh
+sudo pacman -S github-cli
+#+end_src

@@ -74,7 +74,7 @@ Recognize untruth as a condition to life.
        docker
        (eval +overlay)
        (lookup +dictionary +docsets)
-       (lsp +peek)
+       (lsp +elgot)
        (magit +forge)
        make
        pass
@@ -95,9 +95,10 @@ Recognize untruth as a condition to life.
        (org +roam2 +crypt)
        (python +lsp +pyright +pyenv +tree-sitter)
        (rust +lsp)
+       (go +lsp +tree-sitter)
        sh
        (web +lsp +tree-sitter)
-       yaml
+       ;;yaml
 
        :email
 
@@ -231,6 +232,12 @@ Not that i'm gonna write resume anytime soon ...
 #+begin_src emacs-lisp
 (package! org-super-agenda)
 
+#+end_src
+*** Codespaces (github)
+#+begin_src emacs-lisp
+(package! codespaces
+  :recipe (:host github
+           :repo "patrickt/codespaces.el"))
 #+end_src
 ** Config
 :PROPERTIES:
@@ -799,11 +806,36 @@ Since centaur tabs does not run nicely with daemon.
 
 #+name: Roam
 #+begin_src emacs-lisp
-(after! org-roam
-  :custom
-  (setq org-roam-directory "<<org-roam-dir>>")
+;;(after! org-roam
+;;  :custom
+;;  (setq org-roam-directory "<<org-roam-dir>>")
+;;  :config
+;;  (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}")
+
+(use-package! org-roam
+  :init
+  (map! :leader
+        :prefix "n"
+        :desc "org-roam" "l" #'org-roam-buffer-toggle
+        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+        :desc "org-roam-node-find" "f" #'org-roam-node-find
+        :desc "org-roam-ref-find" "r" #'org-roam-ref-find
+        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+        :desc "org-roam-capture" "c" #'org-roam-capture)
+  (setq org-roam-directory (file-truename  "<<org-roam-dir>>")
+        org-roam-database-connector 'sqlite-builtin
+        org-roam-db-gc-threshold most-positive-fixnum
+        org-id-link-to-org-use-id t)
   :config
-  (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}"))
+  (org-roam-setup)
+  (org-roam-db-autosync-mode +1)
+  (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}")
+  (set-popup-rules!
+    `((,(regexp-quote org-roam-buffer) ; persistent org-roam buffer
+       :side right :width .33 :height .5 :ttl nil :modeline nil :quit nil :slot 1)
+      ("^\\*org-roam: " ; node dedicated org-roam buffer
+       :side right :width .33 :height .5 :ttl nil :modeline nil :quit nil :slot 2))))
+
 
 (use-package! websocket
   :after org-roam)
@@ -889,6 +921,12 @@ Since centaur tabs does not run nicely with daemon.
 #+end_src
 
 #+begin_src emacs-lisp
+(map!
+    :map org-agenda-mode-map
+    :after org-agenda
+    "C-=" #'text-scale-increase
+    "C--" #'text-scale-decrease
+    "s-o" #'ibuffer)
 (setq org-agenda-start-with-log-mode t)
 (setq org-log-done 'time)
 (setq org-log-into-drawer t)
@@ -959,14 +997,13 @@ Since centaur tabs does not run nicely with daemon.
                   ((org-agenda-overriding-header "")
                    (org-super-agenda-groups
                     '(
-                        (:name ""
+                        (:name " Overdue"
                          :scheduled past
                          :order 2
                          :face 'error)
                         (:habit t)
                         (:name " Today"
                          :time-grid t
-                         :todo "TODO"
                          :scheduled today
                          :order 0)))))
 
@@ -1010,12 +1047,6 @@ Since centaur tabs does not run nicely with daemon.
         ("Personal" ,(list (all-the-icons-material "person" :height 0.9)) nil nil :ascent center)))
 
 #+end_src
-
-#+RESULTS:
-| Work     | () | nil | nil | :ascent | center |
-| Project  | () | nil | nil | :ascent | center |
-| Study    | () | nil | nil | :ascent | center |
-| Personal | () | nil | nil | :ascent | center |
 
 ***** Super
 #+begin_src emacs-lisp
@@ -1118,6 +1149,62 @@ Since centaur tabs does not run nicely with daemon.
       (pyenv-mode-unset))))
 
 (add-hook 'projectile-after-switch-project-hook 'projectile-pyenv-mode-set)
+#+end_src
+
+**** Golang
+References:
+- https://nayak.io/posts/golang-development-doom-emacs/
+- https://dr-knz.net/a-tour-of-emacs-as-go-editor.html
+***** Organize imports
+#+begin_src emacs-lisp
+(add-hook 'go-mode-hook #'lsp-deferred)
+;; Make sure you don't have other goimports hooks enabled.
+(defun lsp-go-install-save-hooks ()
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+#+end_src
+***** Formatter (gofumt)
+#+begin_comment
+go install mvdan.cc/gofumpt@latest
+#+end_comment
+
+#+begin_src emacs-lisp
+(after! lsp-mode
+  (setq  lsp-go-use-gofumpt t)
+  )
+#+end_src
+***** Prettify
+#+begin_src emacs-lisp
+
+
+(add-hook
+ 'go-mode-hook
+ (lambda ()
+   (push '("error" . ?∇) prettify-symbols-alist)
+   (push '("err" . ?⊙) prettify-symbols-alist)
+   (push '("exists" . ?∃) prettify-symbols-alist)
+   (push '(":= range" . ?∈) prettify-symbols-alist)
+   (push '("ok" . ?✓) prettify-symbols-alist)
+   (push '("==" . ?≡) prettify-symbols-alist)
+   (push '(":=" . ?≔) prettify-symbols-alist)
+   (push '(">=" . ?≥) prettify-symbols-alist)
+   (push '("<=" . ?≤) prettify-symbols-alist)
+   (push '("<-" . ?←) prettify-symbols-alist)
+   (push '("!=" . ?≠) prettify-symbols-alist)
+   (push '("..." . ?…) prettify-symbols-alist)
+   (push '("nil" . ?∅) prettify-symbols-alist)
+   (push '("make" . ?&) prettify-symbols-alist)
+   (push '("new" . ?&) prettify-symbols-alist)
+   (push '("context.Context" . ?◇) prettify-symbols-alist)
+   (push '("ctx" . ?⋄) prettify-symbols-alist)
+   (push '("mu" . ?❢) prettify-symbols-alist)
+   (push '("&&" . ?∧) prettify-symbols-alist)
+   (push '("||" . ?∨) prettify-symbols-alist)
+   (push '("!" . ?¬) prettify-symbols-alist)
+   (push '("interface{}" . ?⋆) prettify-symbols-alist)
+   (push '("struct{}" . ?ε) prettify-symbols-alist)
+   ))
+(global-prettify-symbols-mode 't)
 #+end_src
 
 *** VTERM
@@ -1268,48 +1355,48 @@ Since centaur tabs does not run nicely with daemon.
 
 *** LSP/DAP
 **** LSP
-Better defaults
+Better defaults, commented out because of using ELGOT
 #+begin_src emacs-lisp
-(after! lsp-mode
-  (setq +lsp-company-backends
-        '(:separate company-capf company-yasnippet company-dabbrev)))
+;(after! lsp-mode
+;  (setq +lsp-company-backends
+;        '(:separate company-capf company-yasnippet company-dabbrev)))
 #+end_src
 **** DAP
 Increase variable line length
 #+begin_src emacs-lisp
-(setq dap-ui-variable-length 200)
-(after! dap-mode
-  (setq dap-python-debugger 'debugpy))
-(map! :map dap-mode-map
-      :leader
-      :prefix ("z" . "dap")
-      ;; basics
-      :desc "dap next"          "n" #'dap-next
-      :desc "dap step in"       "i" #'dap-step-in
-      :desc "dap step out"      "o" #'dap-step-out
-      :desc "dap continue"      "c" #'dap-continue
-      :desc "dap hydra"         "h" #'dap-hydra
-      :desc "dap debug restart" "r" #'dap-debug-restart
-      :desc "dap debug"         "s" #'dap-debug
-
-      ;; debug
-      :prefix ("zd" . "Debug")
-      :desc "dap debug recent"  "r" #'dap-debug-recent
-      :desc "dap debug last"    "l" #'dap-debug-last
-
-      ;; eval
-      :prefix ("ze" . "Eval")
-      :desc "eval"                "e" #'dap-eval
-      :desc "eval region"         "r" #'dap-eval-region
-      :desc "eval thing at point" "s" #'dap-eval-thing-at-point
-      :desc "add expression"      "a" #'dap-ui-expressions-add
-      :desc "remove expression"   "d" #'dap-ui-expressions-remove
-
-      :prefix ("zb" . "Breakpoint")
-      :desc "dap breakpoint toggle"      "b" #'dap-breakpoint-toggle
-      :desc "dap breakpoint condition"   "c" #'dap-breakpoint-condition
-      :desc "dap breakpoint hit count"   "h" #'dap-breakpoint-hit-condition
-      :desc "dap breakpoint log message" "l" #'dap-breakpoint-log-message)
+;(setq dap-ui-variable-length 200)
+;(after! dap-mode
+;  (setq dap-python-debugger 'debugpy))
+;(map! :map dap-mode-map
+;      :leader
+;      :prefix ("z" . "dap")
+;      ;; basics
+;      :desc "dap next"          "n" #'dap-next
+;      :desc "dap step in"       "i" #'dap-step-in
+;      :desc "dap step out"      "o" #'dap-step-out
+;      :desc "dap continue"      "c" #'dap-continue
+;      :desc "dap hydra"         "h" #'dap-hydra
+;      :desc "dap debug restart" "r" #'dap-debug-restart
+;      :desc "dap debug"         "s" #'dap-debug
+;
+;      ;; debug
+;      :prefix ("zd" . "Debug")
+;      :desc "dap debug recent"  "r" #'dap-debug-recent
+;      :desc "dap debug last"    "l" #'dap-debug-last
+;
+;      ;; eval
+;      :prefix ("ze" . "Eval")
+;      :desc "eval"                "e" #'dap-eval
+;      :desc "eval region"         "r" #'dap-eval-region
+;      :desc "eval thing at point" "s" #'dap-eval-thing-at-point
+;      :desc "add expression"      "a" #'dap-ui-expressions-add
+;      :desc "remove expression"   "d" #'dap-ui-expressions-remove
+;
+;      :prefix ("zb" . "Breakpoint")
+;      :desc "dap breakpoint toggle"      "b" #'dap-breakpoint-toggle
+;      :desc "dap breakpoint condition"   "c" #'dap-breakpoint-condition
+;      :desc "dap breakpoint hit count"   "h" #'dap-breakpoint-hit-condition
+;      :desc "dap breakpoint log message" "l" #'dap-breakpoint-log-message)
 #+end_src
 
 *** Spelling
@@ -1340,12 +1427,10 @@ Increase variable line length
 ;              ("RET" . 'copilot-accept-completion)
 ;              ("C-TAB" . 'copilot-accept-completion-by-word)
 ;              ("C-<tab>" . 'copilot-accept-completion-by-word)))
-
+;
 ;(after! copilot
 ;  (global-copilot-mode 1))
 #+end_src
-
-#+RESULTS: Copilot config
 
 **** Login
 M-x copilot-login
@@ -1373,6 +1458,20 @@ machine api.github.com login yourlogin^github-review password MYTOKENGOESHERE
 ;;                :action 'get-reviews) t)
 
 #+end_src
+**** Codespaces
+#+begin_src emacs-lisp
+(use-package codespaces
+  :config (codespaces-setup)
+  :bind ("C-c S" . #'codespaces-connect))
+#+end_src
+#+name: QOL
+#+begin_src emacs-lisp
+(setq vc-handled-backends '(Git))
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+(setq tramp-ssh-controlmaster-options "")
+#+end_src
+
+
 *** Useful links
 - https://elken.github.io/doom/#org565ac46
 - https://tecosaur.github.io/emacs-config/config.html#doom-configuration
@@ -1438,7 +1537,7 @@ https://github.com/syl20bnr/evil-iedit-state
 #+begin_src emacs-lisp
 
 (use-package! ox-awesomecv
-  :ensure t
+  ;;:ensure t
   :after org
   :init (require 'ox-awesomecv))
 #+end_src

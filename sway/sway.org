@@ -320,3 +320,39 @@ include /etc/sway/config.d/*
 #+begin_src conf
 seat seat0 hide_cursor 3000
 #+end_src
+
+** Lock
+#+name: swaylock
+#+begin_src conf
+set $sleep "swaylock \
+    --screenshots \
+    --clock \
+    --indicator \
+    --indicator-radius 100 \
+    --indicator-thickness 7 \
+    --effect-blur 7x5 \
+    --effect-vignette 0.5:0.5 \
+    --ring-color c678dd \
+    --key-hl-color 6eaafb \
+    --text-color abb2bf \
+    --ring-ver-color 98c379 \
+    --inside-ver-color 98c379 \
+    --line-color 00000000 \
+    --inside-color 282c34 \
+    --separator-color 00000000 \
+    --grace 5"
+
+exec swayidle timeout 180 $sleep \
+    timeout 300 'swaymsg "output * dpms off"' \
+    timeout 60 'if pgrep -x swaylock; then swaymsg "output * dpms off"; fi' \
+    resume 'swaymsg "output * dpms on"'
+
+
+bindsym ctrl+alt+l exec $sleep
+#+end_src
+
+* Swaylock
+#+begin_src sh
+yay -S swaylock-effects
+pacman -S swayidle
+#+end_src
