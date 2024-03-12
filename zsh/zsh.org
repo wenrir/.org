@@ -18,5 +18,20 @@ chsh -s /usr/bin/zsh
 :END:
 
 #+begin_src zsh
-export PATH=$PATH:/usr/local/go/bin
+# Lines configured by zsh-newuser-install
+export PATH=$HOME/.config/emacs/bin/:$PATH
+export GOROOT=$HOME/go-1.22.0
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+alias gs="git status"
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=1000
+# End of lines configured by zsh-newuser-install
+# The following lines were added by compinstall
+zstyle :compinstall filename '/home/wim/.zshrc'
+
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
 #+end_src

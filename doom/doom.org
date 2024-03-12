@@ -806,35 +806,35 @@ Since centaur tabs does not run nicely with daemon.
 
 #+name: Roam
 #+begin_src emacs-lisp
-;;(after! org-roam
-;;  :custom
-;;  (setq org-roam-directory "<<org-roam-dir>>")
-;;  :config
-;;  (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}")
-
-(use-package! org-roam
-  :init
-  (map! :leader
-        :prefix "n"
-        :desc "org-roam" "l" #'org-roam-buffer-toggle
-        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
-        :desc "org-roam-node-find" "f" #'org-roam-node-find
-        :desc "org-roam-ref-find" "r" #'org-roam-ref-find
-        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
-        :desc "org-roam-capture" "c" #'org-roam-capture)
-  (setq org-roam-directory (file-truename  "<<org-roam-dir>>")
-        org-roam-database-connector 'sqlite-builtin
-        org-roam-db-gc-threshold most-positive-fixnum
-        org-id-link-to-org-use-id t)
+(after! org-roam
+  :custom
+  (setq org-roam-directory "<<org-roam-dir>>")
   :config
-  (org-roam-setup)
-  (org-roam-db-autosync-mode +1)
   (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}")
-  (set-popup-rules!
-    `((,(regexp-quote org-roam-buffer) ; persistent org-roam buffer
-       :side right :width .33 :height .5 :ttl nil :modeline nil :quit nil :slot 1)
-      ("^\\*org-roam: " ; node dedicated org-roam buffer
-       :side right :width .33 :height .5 :ttl nil :modeline nil :quit nil :slot 2))))
+
+;;(use-package! org-roam
+;;  :init
+;;  (map! :leader
+;;        :prefix "n"
+;;        :desc "org-roam" "l" #'org-roam-buffer-toggle
+;;        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+;;        :desc "org-roam-node-find" "f" #'org-roam-node-find
+;;        :desc "org-roam-ref-find" "r" #'org-roam-ref-find
+;;        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+;;        :desc "org-roam-capture" "c" #'org-roam-capture)
+;;  (setq org-roam-directory (file-truename  "<<org-roam-dir>>")
+;;        org-roam-database-connector 'sqlite-builtin
+;;        org-roam-db-gc-threshold most-positive-fixnum
+;;        org-id-link-to-org-use-id t)
+;;  :config
+;;  (org-roam-setup)
+;;  (org-roam-db-autosync-mode +1)
+;;  (setq org-roam-node-display-template " ${directories:10} | ${title:50} | ${tags}")
+;;  (set-popup-rules!
+;;    `((,(regexp-quote org-roam-buffer) ; persistent org-roam buffer
+;;       :side right :width .33 :height .5 :ttl nil :modeline nil :quit nil :slot 1)
+;;      ("^\\*org-roam: " ; node dedicated org-roam buffer
+;;       :side right :width .33 :height .5 :ttl nil :modeline nil :quit nil :slot 2))))
 
 
 (use-package! websocket
